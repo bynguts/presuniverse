@@ -1,0 +1,831 @@
+// ── DATA ────────────────────────────────────────────────────────────────────
+const LOCS = [
+
+    { id:'lobby',     name:'Campus Lobby',                emoji:'🏛️', kw:['lobby','entrance','main','masuk','depan','hall','aula'],
+      link:'https://momento360.com/e/u/67dfe1cb293d49c5bd6191ac6355af3f?utm_campaign=embed&utm_source=other&heading=-44.62&pitch=20.64&field-of-view=75',
+      desc:'The grand main entrance and welcoming hub of President University — visitors first step into this elegant lobby before exploring campus.' },
+    { id:'library',   name:'Library',                    emoji:'📚', kw:['library','perpustakaan','buku','book','read','baca','pustaka'],
+      link:'https://momento360.com/e/u/86ed496a88644e66856a147e0fd5de94?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=100&size=medium&display-plan=true',
+      desc:'A modern multi-story library with thousands of academic books, digital resources, private study rooms, and comfortable reading areas.' },
+    { id:'fablab',    name:'Fablab',                     emoji:'🔧', kw:['fablab','lab','maker','fabrication','3d','print','workshop','mesin'],
+      link:'https://momento360.com/e/u/7424e69d3e35472b948e5a0f4e7c6439?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+      desc:'A state-of-the-art fabrication lab with 3D printers, laser cutters, CNC machines, and electronics workstations for hands-on innovation.' },
+    { id:'cafe',      name:'Cafe',                       emoji:'☕', kw:['cafe','coffee','food','makan','minum','kantin','cafeteria','restaurant','resto','kopi','warung','jajan'],
+      link:'https://momento360.com/e/u/c2f6450ff339461d8bdc726d106c0e76?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+      desc:'A cozy campus cafe offering meals, snacks, and beverages — the perfect place to relax, eat, and collaborate with friends between classes.' },
+    { id:'interior',  name:'Interior Design Classroom',  emoji:'🎨', kw:['interior','design','art','creative','classroom','studio','seni'],
+      link:'https://momento360.com/e/u/ee7b26e299d04a18990e1e869149cf78?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+      desc:'A professional creative studio for Interior Design students with rendering workstations, material samples, and design review spaces.' },
+    { id:'pool',      name:'Swimming Pool',               emoji:'🏊', kw:['pool','swim','kolam','renang','sport','olahraga','swimming'],
+      link:'https://momento360.com/e/u/eb0be281cd7547d9a5b55dee9abc6b00?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+      desc:'An Olympic-standard indoor swimming pool supporting varsity athletes, PE classes, and recreational swimming for all students.' },
+    { id:'gamedev',   name:'Game Development Classroom', emoji:'🎮', kw:['game','gaming','gamedev','developer','coding','programming','komputer','computer'],
+      link:'https://momento360.com/e/u/0d6f410a3f6d46e298cec9f0524ddb90?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+      desc:'A cutting-edge game dev lab with high-performance gaming PCs, development tools (Unity, Unreal), and collaborative project spaces.' },
+    { id:'buildingB', name:'Building B (Classroom)',      emoji:'🏢', kw:['building b','gedung b','classroom','kelas','ruang kelas'],
+      link:'https://momento360.com/e/u/ac812ecf42544adf8a636c06a7972bdc?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+      desc:'General-purpose academic classrooms in Building B, equipped with projectors, air conditioning, and modern furniture for comfortable learning.' },
+    { id:'golf',      name:'Golf Club',                   emoji:'⛳', kw:['golf','sport','green','club','recreation','lapangan'],
+      link:'https://momento360.com/e/u/3fe0e34dcb764b62b62a2db150872091?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+      desc:'A private golf club and driving range on campus grounds — one of the unique perks of studying at President University.' },
+    { id:'buildingA', name:'Building A (Classroom)',      emoji:'🏫', kw:['building a','gedung a','classroom','kelas','lecture'],
+      link:'https://momento360.com/e/u/f3254bbdd89743f9ba6b2c5db7a6c890?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+      desc:'The main academic building with large lecture halls and seminar rooms for a variety of faculties and programs.' },
+    { id:'law',       name:'Classroom for Law Student',   emoji:'⚖️', kw:['law','hukum','legal','moot court','mahkamah','pengadilan'],
+      link:'https://momento360.com/e/u/0e1410fe2b4c436ea8f469b88e15050c?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+      desc:'Specialized moot court and seminar rooms for Faculty of Law students, designed to simulate real courtroom environments.' },
+];
+
+const SUGGS = {
+    lobby:     ['Where is the cafe? ☕','Show me the library 📚','What facilities are available?'],
+    library:   ['How many books are here?','Show me the Fablab 🔧','Where can I eat? 🍽️'],
+    cafe:      ['What food is available? 🍕','Take me to the pool 🏊','Back to lobby 🏛️'],
+    pool:      ['Tell me about sports here','Show me Golf Club ⛳','Where is Game Dev? 🎮'],
+    fablab:    ['What machines are available?','Show me Game Dev class 🎮','Any design studios?'],
+    gamedev:   ['What software do they use?','Show me Fablab 🔧','Where is Building B?'],
+    golf:      ['Is this open to all students?','Show me the pool 🏊','Tell me more about sports'],
+    interior:  ['What programs are in this building?','Show me Building A','Where is the library?'],
+    buildingA: ['Show me Building B','Take me to the cafe ☕','What faculties are here?'],
+    buildingB: ['Show me Building A','Take me to the library 📚','Where is the pool?'],
+    law:       ['What is studied in law here?','Show me Building A','Take me to the library'],
+    default:   ['Tell me about this room','Where is the cafe? ☕','Show me the library 📚'],
+};
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let cur = 0;
+let busy = false;
+let history = [];
+let panelOpen = false;
+let isRec = false;
+
+// Whisper recording state
+let mediaRecorder = null;
+let audioChunks = [];
+let audioStream = null;
+
+// Sound and TTS State
+let isSoundOn = true;
+let currentAudio = null;
+
+// ── INTERRUPT / ABORT STATE ─────────────────────────────────────────
+let abortController = null; // AbortController for current fetch stream
+
+// Stop everything ARIA is doing and reset state instantly
+function interruptAria() {
+    if (abortController) { abortController.abort(); abortController = null; }
+    stopTTS();
+    hideDots();
+    busy = false;
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) sendBtn.disabled = false;
+}
+
+// ── WHISPER / WEB SPEECH API VOICE NOTE ───────────────────────────────────────
+let recognition = null;
+let clickedStop = false;
+let WHISPER_URL = 'http://127.0.0.1:9000/inference';
+
+// Fetch config from backend
+async function loadConfig() {
+    try {
+        const res = await fetch('/api/config');
+        if (res.ok) {
+            const data = await res.json();
+            WHISPER_URL = data.WHISPER_SERVER_URL || WHISPER_URL;
+        }
+    } catch (e) {
+        console.warn("Failed to fetch config, using defaults", e);
+    }
+}
+loadConfig();
+
+async function toggleMic() {
+    stopTTS(); // Immediately stop TTS when recording starts/toggles
+    if (isRec) {
+        stopRec();
+    } else {
+        await startRec();
+    }
+}
+
+// 1. Web Speech API (Modern, Real-time, 100% Free, No Balance Required)
+function startRecWebSpeech() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!recognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        
+        // Use the dynamically selected language
+        recognition.lang = currentSTTLang;
+        
+        recognition.onstart = () => {
+            isRec = true;
+            const btn = document.getElementById('micBtn');
+            btn.classList.add('mic-on');
+            btn.innerHTML = '⏹️';
+            btn.title = 'Click to stop & send';
+            startRecTimerWebSpeech();
+        };
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            const currentText = finalTranscript || interimTranscript;
+            if (currentText) {
+                document.getElementById('txt').value = currentText;
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error', event.error);
+            if (event.error === 'not-allowed') {
+                showMicError('Microphone access denied. Please allow mic permission in Chrome settings.');
+            } else {
+                showMicError('Speech recognition error: ' + event.error);
+            }
+            resetMicBtn();
+            isRec = false;
+            clearInterval(recTimerInterval);
+            document.getElementById('txt').placeholder = 'Ask ARIA anything...';
+        };
+
+        recognition.onend = () => {
+            const text = document.getElementById('txt').value.trim();
+            resetMicBtn();
+            clearInterval(recTimerInterval);
+            document.getElementById('txt').placeholder = 'Ask ARIA anything...';
+            isRec = false;
+            
+            if (text && clickedStop) {
+                sendMsg();
+            }
+            clickedStop = false;
+        };
+    }
+
+    clickedStop = false;
+    document.getElementById('txt').value = '';
+    try {
+        recognition.start();
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function stopRecWebSpeech() {
+    clickedStop = true;
+    if (recognition) {
+        recognition.stop();
+    }
+    isRec = false;
+    clearInterval(recTimerInterval);
+    const btn = document.getElementById('micBtn');
+    btn.classList.remove('mic-on');
+    btn.innerHTML = '⏳';
+    btn.title = 'Processing...';
+    document.getElementById('txt').placeholder = 'Processing...';
+}
+
+function startRecTimerWebSpeech() {
+    recSeconds = 0;
+    document.getElementById('txt').placeholder = '🎙️ Listening...';
+    recTimerInterval = setInterval(() => {
+        recSeconds++;
+        document.getElementById('txt').placeholder = `🎙️ Listening: ${recSeconds}s... (⏹ stop)`;
+    }, 1000);
+}
+
+// 2. Legacy MediaRecorder (Fallback)
+async function startRec() {
+    try {
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+        showMicError('Microphone access denied. Please allow mic permission.');
+        return;
+    }
+
+    // Pick best supported format for Whisper.cpp (prefers webm/ogg, fallback wav)
+    const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg']
+        .find(m => MediaRecorder.isTypeSupported(m)) || '';
+
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(audioStream, mimeType ? { mimeType } : {});
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = async () => {
+        audioStream.getTracks().forEach(t => t.stop());
+        await transcribeWithWhisper();
+    };
+    mediaRecorder.start();
+
+    isRec = true;
+    const btn = document.getElementById('micBtn');
+    btn.classList.add('mic-on');
+    btn.innerHTML = '⏹️';
+    btn.title = 'Click to stop & transcribe';
+
+    // Show live timer in input placeholder
+    startRecTimer();
+}
+
+function stopRec() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+    }
+    isRec = false;
+    clearInterval(recTimerInterval);
+    const btn = document.getElementById('micBtn');
+    btn.classList.remove('mic-on');
+    btn.innerHTML = '⏳';
+    btn.title = 'Transcribing...';
+    document.getElementById('txt').placeholder = 'Transcribing with AI...';
+}
+
+let recTimerInterval = null;
+let recSeconds = 0;
+function startRecTimer() {
+    recSeconds = 0;
+    document.getElementById('txt').placeholder = '🎙️ Recording...';
+    recTimerInterval = setInterval(() => {
+        recSeconds++;
+        document.getElementById('txt').placeholder = `🎙️ Recording: ${recSeconds}s... (⏹ stop)`;
+    }, 1000);
+}
+
+async function transcribeWithWhisper() {
+    let wavBlob;
+    try {
+        wavBlob = await audioToWav(audioChunks);
+    } catch (e) {
+        console.error('Conversion error:', e);
+        showMicError('Failed to process audio format.');
+        resetMicBtn();
+        return;
+    }
+
+    let transcript = '';
+
+    // ── Send to Backend Dual-Stage STT Proxy
+    try {
+        console.log('[STT] Sending audio to backend proxy `/api/stt`...');
+        const res = await fetch('/api/stt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'audio/wav'
+            },
+            body: wavBlob
+        });
+
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`STT API error: ${res.status} - ${errText}`);
+        }
+
+        const data = await res.json();
+        transcript = data.text || '';
+        console.log(`[STT] Transcription success via provider: ${data.provider}`, JSON.stringify(transcript));
+    } catch (err) {
+        console.error('[STT] Transcription failed:', err);
+        showMicError('⚠️ Transcription failed. Both OpenRouter and Whisper fallback failed.');
+        resetMicBtn();
+        return;
+    }
+
+    resetMicBtn();
+
+    const SILENCE_TOKENS = ['[BLANK_AUDIO]', '(silence)', '[silence]', '[ Silence ]', '[ BLANK_AUDIO ]'];
+    const isNoise = !transcript 
+        || SILENCE_TOKENS.some(t => transcript.includes(t))
+        || transcript.trim().split(/\s+/).length === 1 && transcript.trim().length <= 3;
+
+    if (!isNoise) {
+        // Clear any previous error messages
+        const chat = document.getElementById('chat');
+        const lastMsg = chat.lastElementChild;
+        if (lastMsg && lastMsg.classList.contains('sys')) lastMsg.remove();
+
+        document.getElementById('txt').value = transcript;
+        document.getElementById('txt').placeholder = 'Ask ARIA anything...';
+        sendMsg();
+    } else {
+        document.getElementById('txt').placeholder = 'Ask ARIA anything...';
+        const debugInfo = transcript ? `(Got: "${transcript}")` : '(Empty response)';
+        showMicError(`Could not transcribe audio ${debugInfo}.`);
+    }
+}
+
+// ── WAV CONVERTER UTILS ──────────────────────────────────────────────────────
+async function audioToWav(chunks) {
+    const blob = new Blob(chunks);
+    const arrayBuffer = await blob.arrayBuffer();
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+    // Resample to 16000Hz Mono (Required by Whisper.cpp)
+    const offlineCtx = new OfflineAudioContext(1, Math.ceil(16000 * audioBuffer.duration), 16000);
+    const source = offlineCtx.createBufferSource();
+    source.buffer = audioBuffer;
+
+    source.connect(offlineCtx.destination);
+    source.start();
+
+    const renderedBuffer = await offlineCtx.startRendering();
+    const wavBlob = bufferToWav(renderedBuffer);
+    console.log('[WAV] duration:', audioBuffer.duration.toFixed(2), 's | size:', wavBlob.size, 'bytes');
+    return wavBlob;
+}
+
+function bufferToWav(abuffer) {
+    let numOfChan = abuffer.numberOfChannels,
+        length = abuffer.length * numOfChan * 2 + 44,
+        buffer = new ArrayBuffer(length),
+        view = new DataView(buffer),
+        pos = 0;
+
+    const setUint16 = (d) => { view.setUint16(pos, d, true); pos += 2; };
+    const setUint32 = (d) => { view.setUint32(pos, d, true); pos += 4; };
+
+    setUint32(0x46464952); setUint32(length - 8); setUint32(0x45564157);
+    setUint32(0x20746d66); setUint32(16); setUint16(1); setUint16(numOfChan);
+    setUint32(abuffer.sampleRate); setUint32(abuffer.sampleRate * 2 * numOfChan);
+    setUint16(numOfChan * 2); setUint16(16);
+    setUint32(0x61746164); setUint32(length - pos - 4);
+
+    for(let i=0; i<abuffer.length; i++) {
+        for(let ch=0; ch<numOfChan; ch++) {
+            let s = Math.max(-1, Math.min(1, abuffer.getChannelData(ch)[i]));
+            view.setInt16(pos, s < 0 ? s * 32768 : s * 32767, true);
+            pos += 2;
+        }
+    }
+    return new Blob([buffer], {type: "audio/wav"});
+}
+
+function resetMicBtn() {
+    const btn = document.getElementById('micBtn');
+    btn.innerHTML = '🎙️';
+    btn.title = 'Voice input (Whisper)';
+    btn.classList.remove('mic-on');
+}
+
+function showMicError(msg) {
+    // Show error as a system message in chat
+    addMsg('sys', `⚠️ ${msg}`);
+}
+
+// ── PANEL ────────────────────────────────────────────────────────────────────
+function togglePanel() {
+    panelOpen = !panelOpen;
+    const panel = document.getElementById('aiPanel');
+    
+    panel.classList.toggle('open', panelOpen);
+    
+    if (panelOpen && history.length === 0) {
+        setTimeout(autoGreet, 450);
+    }
+}
+
+// ── SCENE ────────────────────────────────────────────────────────────────────
+function nav(d) {
+    cur = (cur + d + LOCS.length) % LOCS.length;
+    loadScene(true, false);
+}
+
+function jumpTo(idx, fromAI = false) {
+    if (idx === cur) return;
+    cur = idx;
+    loadScene(true, fromAI);
+}
+
+function loadScene(animate = false, fromAI = false) {
+    const loc = LOCS[cur];
+    if (animate) {
+        const ov = document.getElementById('overlay');
+        const fl = document.getElementById('locFlash');
+        fl.textContent = loc.emoji + ' ' + loc.name;
+        ov.classList.add('on'); fl.classList.add('on');
+        setTimeout(() => {
+            document.getElementById('viewer').src = loc.link;
+            setLabels(loc);
+        }, 280);
+        setTimeout(() => { ov.classList.remove('on'); fl.classList.remove('on'); }, 850);
+        
+        // Only trigger autoGreet if user manually changed the room, NOT if AI just answered them
+        if (panelOpen && !fromAI) setTimeout(autoGreet, 1050);
+    } else {
+        document.getElementById('viewer').src = loc.link;
+        setLabels(loc);
+    }
+    setSuggs(loc);
+}
+
+function setLabels(loc) {
+    document.getElementById('topLoc').textContent = loc.name;
+    document.getElementById('locLabel').textContent = loc.emoji + ' ' + loc.name;
+    document.getElementById('panelLoc').textContent = loc.emoji + ' ' + loc.name;
+}
+
+function setSuggs(loc) {
+    const set = (SUGGS[loc.id] || SUGGS.default).slice(0, 2);
+    document.getElementById('suggs').innerHTML = set.map(s =>
+        `<div class="chip" onclick="chipClick(this)">${s}</div>`
+    ).join('');
+}
+
+function chipClick(el) {
+    document.getElementById('txt').value = el.textContent;
+    sendMsg();
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function grow(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+}
+function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+
+// ── CHAT UI ──────────────────────────────────────────────────────────────────
+function addMsg(role, text) {
+    const c = document.getElementById('chat');
+    const d = document.createElement('div');
+    const isSys = role === 'sys';
+    d.className = 'msg ' + (role === 'u' ? 'u' : role === 'sys' ? 'sys' : '');
+    d.innerHTML = `<div class="mavatar">${role==='u'?'👤':isSys?'⚠️':'🎓'}</div><div class="bubble">${text}</div>`;
+    c.appendChild(d);
+    c.scrollTop = c.scrollHeight;
+}
+
+// Helper for async delays
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// Word-by-word typewriter effect for AI replies
+async function addMsgTyping(text) {
+    const c = document.getElementById('chat');
+    const d = document.createElement('div');
+    d.className = 'msg';
+    const avatar = document.createElement('div');
+    avatar.className = 'mavatar';
+    avatar.textContent = '🎓';
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    d.appendChild(avatar);
+    d.appendChild(bubble);
+    c.appendChild(d);
+    c.scrollTop = c.scrollHeight;
+
+    const words = text.split(' ');
+    let displayed = '';
+    for (let i = 0; i < words.length; i++) {
+        displayed += (i > 0 ? ' ' : '') + words[i];
+        bubble.textContent = displayed;
+        c.scrollTop = c.scrollHeight;
+        await sleep(38); // ~26 words/sec — natural reading pace
+    }
+}
+
+// Buat bubble kosong untuk streaming — token langsung di-append ke p.textContent
+function addMsgStream(role) {
+    const c = document.getElementById('chat');
+    const d = document.createElement('div');
+    d.className = 'msg' + (role === 'u' ? ' u' : '');
+    const avatar = document.createElement('div');
+    avatar.className = 'mavatar';
+    avatar.textContent = '🎓';
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    const p = document.createElement('span');
+    bubble.appendChild(p);
+    d.appendChild(avatar);
+    d.appendChild(bubble);
+    c.appendChild(d);
+    c.scrollTop = c.scrollHeight;
+    return { el: d, p };
+}
+
+function showDots() {
+    const c = document.getElementById('chat');
+    const d = document.createElement('div');
+    d.className = 'tdots'; d.id = 'dots';
+    d.innerHTML = `<div class="mavatar">🎓</div><div class="tdots-inner"><span></span><span></span><span></span></div>`;
+    c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+function hideDots() { const e = document.getElementById('dots'); if(e) e.remove(); }
+
+// ── AI CALL ──────────────────────────────────────────────────────────────────
+function buildSys() {
+    const loc = LOCS[cur];
+    return `You are ARIA, an energetic tour guide for President University. Current location: ${loc.name}. 
+JOBS:
+1. Briefly describe locations or answer questions in English.
+2. If the user mentions any campus location, include nav command: \`\`\`nav {"go":"location_id"}\`\`\`.
+IDs: lobby, library, fablab, cafe, interior, pool, gamedev, buildingB, golf, buildingA, law.
+STRICT: Stay on topic (PresUniv). Short answers (2-3 sentences). English ONLY.`;
+}
+
+async function callAI(msg) {
+    history.push({role:'user', content:msg});
+    try {
+        // ✅ Fix 3: AbortController buat interrupt saat user kirim pesan baru
+        abortController = new AbortController();
+        const r = await fetch('/api/chat', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            signal: abortController.signal,
+            body: JSON.stringify({
+                messages: [{role:'system', content:buildSys()}, ...history],
+                max_tokens: 500,
+                temperature: 0.9
+            })
+        });
+
+        if (!r.ok || !r.body) throw new Error('Stream failed');
+
+        const reader = r.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer  = '';
+        let fullText = '';
+
+        // ✅ Fix 2: bubble dibuat LAZY — hanya saat token pertama tiba (tidak ada ghost bubble)
+        let bubble = null;
+        let p = null;
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const raw = line.slice(6).trim();
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (parsed.error) throw new Error(parsed.error);
+                    if (parsed.token) {
+                        // Buat bubble saat token pertama datang + hapus dots
+                        if (!bubble) {
+                            hideDots();
+                            const created = addMsgStream('a');
+                            bubble = created.el;
+                            p = created.p;
+                        }
+                        fullText += parsed.token;
+                        p.textContent = fullText;
+                        bubble.scrollIntoView({ behavior:'smooth', block:'end' });
+                    }
+                } catch { /* skip malformed */ }
+            }
+        }
+
+        abortController = null;
+
+        // ✅ Fix 1: Strip nav JSON dari bubble yang tampil
+        const stripped = fullText
+            .replace(/`{3}nav[\s\S]*?(?:`{3}|$)/g, '')
+            .replace(/\{[\s\S]*?"go"\s*:\s*"\w+"[\s\S]*?\}/g, '')
+            .trim();
+        if (p) p.textContent = stripped; // Update bubble dengan teks bersih
+
+        // Simpan ke history
+        history.push({role:'assistant', content:stripped});
+
+        // Parse + trigger nav
+        const nm = fullText.match(/"go"\s*:\s*"(\w+)"/);
+        if (nm) {
+            const idx = LOCS.findIndex(l => l.id === nm[1]);
+            if (idx !== -1) setTimeout(() => jumpTo(idx, true), 700);
+        }
+
+        return stripped;
+
+    } catch(e) {
+        if (e.name === 'AbortError') return ''; // interrupt normal — jangan error
+        history.pop();
+        return 'Oops, looks like there is a connection issue. Please make sure your API key is correct! 😊';
+    }
+}
+
+
+async function sendMsg() {
+    const t = document.getElementById('txt');
+    const msg = t.value.trim();
+    if (!msg) return;
+    
+    // ✅ Fix 3: Interrupt apapun yang ARIA sedang lakukan
+    interruptAria();
+    
+    t.value = ''; t.style.height = 'auto';
+    addMsg('u', msg);
+    busy = true;
+    document.getElementById('sendBtn').disabled = true;
+    showDots();
+    const reply = await callAI(msg);
+    
+    await sleep(200);
+    if (isSoundOn && reply) {
+        const audio = await prepareTTS(reply);
+        if (audio) playPreparedTTS(audio);
+    }
+    
+    busy = false;
+    document.getElementById('sendBtn').disabled = false;
+}
+
+async function autoGreet() {
+    if (busy) return;
+    const loc = LOCS[cur];
+    busy = true; showDots();
+    
+    // Use natural conversational prompts in English
+    const prompts = [
+        `Hey ARIA, we just arrived at the ${loc.name}! Introduce this place to me casually and creatively in English.`,
+        `Oh wow, so we are now standing at the ${loc.name}? Tell me what makes this place special in English!`,
+        `We've just entered the ${loc.name}. What can we find here? Tell me about it like a friend in English.`,
+        `Alright, we are at the ${loc.name}. Give me a quick, fun tour guide welcome here in English!`,
+        `Wow, the ${loc.name} looks great. Can you share some cool details about it in English without being too formal?`
+    ];
+    const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+    
+    showDots(); // ⬅️ Fix 3: typing indicator
+    const reply = await callAI(randomPrompt);
+    
+    await sleep(200);
+    if (isSoundOn && reply) {
+        const audio = await prepareTTS(reply);
+        if (audio) playPreparedTTS(audio);
+    }
+    
+    busy = false;
+}
+
+// ── TEXT TO SPEECH (CLOUD EDGE - EMMA) ───────────────────────────────────────
+function stopTTS() {
+    if (currentAudio) {
+        try {
+            currentAudio.pause();
+            currentAudio.currentTime = 0; // Reset playback position
+        } catch (e) {
+            console.warn('[TTS Stop Error]:', e);
+        }
+        const btn = document.getElementById('soundBtn');
+        if (btn) btn.classList.remove('playing');
+    }
+}
+
+function toggleSound() {
+    isSoundOn = !isSoundOn;
+    const btn = document.getElementById('soundBtn');
+    if (isSoundOn) {
+        btn.textContent = '🔊';
+        btn.classList.remove('muted');
+        btn.title = 'Mute ARIA voice';
+    } else {
+        btn.textContent = '🔇';
+        btn.classList.add('muted');
+        btn.title = 'Unmute ARIA voice';
+        stopTTS();
+    }
+}
+
+async function prepareTTS(text) {
+    if (!text) return null;
+    const cleanText = text
+        // Strip all emoji (all modern Unicode emoji blocks)
+        .replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\u{2B00}-\u{2BFF}]|[\u{FE00}-\u{FEFF}]|\u200D/gu, '')
+        // Strip problematic punctuation TTS reads aloud
+        .replace(/[`~*_#\[\]{}|<>]/g, '') // markdown symbols
+        .replace(/\u2014|\u2013|\u2015/g, ', ') // em dash, en dash → comma pause
+        .replace(/\.{2,}/g, '.') // ... → single period
+        .replace(/!{2,}/g, '!') // multiple exclamation → one
+        .replace(/\s+/g, ' ') // collapse whitespace
+        .trim();
+    let audioObj = null;
+    try {
+        if (cleanText.length > 1200) {
+            const res = await fetch('/api/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: cleanText })
+            });
+            if (!res.ok) throw new Error('TTS response error');
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            audioObj = new Audio(url);
+        } else {
+            const streamUrl = `/api/tts?text=${encodeURIComponent(cleanText)}&t=${Date.now()}`;
+            audioObj = new Audio(streamUrl);
+        }
+        audioObj.preload = "auto"; // force browser to preload while typing
+        return audioObj;
+    } catch (e) {
+        console.warn('[TTS Preload Failed]:', e);
+        return null;
+    }
+}
+
+async function playPreparedTTS(audioObj) {
+    if (!isSoundOn || !audioObj) return;
+    const btn = document.getElementById('soundBtn');
+    
+    try {
+        stopTTS();
+        currentAudio = audioObj;
+        
+        currentAudio.onplay = () => {
+            if (btn && isSoundOn) btn.classList.add('playing');
+        };
+        
+        currentAudio.onended = () => {
+            if (btn) btn.classList.remove('playing');
+        };
+        
+        currentAudio.onpause = () => {
+            if (btn) btn.classList.remove('playing');
+        };
+
+        await currentAudio.play();
+    } catch (e) {
+        console.warn('[TTS Playback Failed]:', e);
+        if (btn) btn.classList.remove('playing');
+    }
+}
+
+// ── INITIAL GREETING (LOBBY GACHA) ───────────────────────────────────────────
+async function firstGreet() {
+    if (busy) return;
+    busy = true; 
+    
+    // 1. First Message: Hardcoded Gacha — NO LLM, print instantly
+    const slogans = [
+        "Welcome to the most international university in Indonesia! 🌍",
+        "Welcome to the most roblox university in Indonesia! 🎮"
+    ];
+    const gachaSlogan = slogans[Math.floor(Math.random() * slogans.length)];
+    history.push({role: 'assistant', content: gachaSlogan});
+    addMsg('a', gachaSlogan);
+    
+    // ✅ Fix 1: Siapkan TTS msg 1 dan langsung play setelah sleep(600)
+    const audio1Promise = isSoundOn ? prepareTTS(gachaSlogan) : Promise.resolve(null);
+    await sleep(600);
+    
+    const audio1 = await audio1Promise;
+    if (isSoundOn && audio1) playPreparedTTS(audio1); // ⬅️ LANGSUNG PLAY, tidak nunggu msg 2
+    
+    // 2. Second Message: streaming LLM — callAI buat bubble sendiri
+    showDots(); 
+    const prompt = "Briefly describe this Campus Lobby in a friendly way. Max 2 sentences. Don't say 'Welcome'.";
+    
+    // Siapkan TTS msg 2 di background sambil stream berjalan
+    let audio2 = null;
+    const reply = await callAI(prompt); // ✅ Fix 2: callAI sudah buat bubble, tidak perlu addMsgTyping
+    
+    // Setelah stream selesai, siapkan audio2
+    if (isSoundOn && reply) {
+        audio2 = await prepareTTS(reply);
+    }
+    
+    await sleep(200);
+    
+    // Helper: tunggu sampai audio selesai
+    const waitForAudioEnd = (audioObj) => new Promise(resolve => {
+        if (!audioObj) return resolve();
+        // Jika sudah selesai (ended sebelum kita pasang handler)
+        if (audioObj.ended) return resolve();
+        audioObj.addEventListener('ended', resolve, { once: true });
+        audioObj.addEventListener('error', resolve, { once: true });
+    });
+    
+    // Tunggu audio1 selesai, baru play audio2
+    await waitForAudioEnd(audio1);
+    if (isSoundOn && audio2) playPreparedTTS(audio2);
+    
+    busy = false;
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+setLabels(LOCS[0]);
+setSuggs(LOCS[0]);
+
+// Pre-seed history so togglePanel's autoGreet check (history.length === 0) is skipped.
+// firstGreet() handles the real welcome sequence instead.
+history.push({role: 'assistant', content: '__init__'});
+
+setTimeout(() => {
+    if (!panelOpen) togglePanel();
+    // Clear the placeholder and fire our custom greeting
+    history = [];
+    setTimeout(() => {
+        firstGreet();
+    }, 800);
+}, 1000);

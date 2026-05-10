@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Campus Tour — PresUniverse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/tour.css">
+</head>
+<body>
+<div id="overlay"></div>
+<div id="locFlash"></div>
+
+<!-- TOP BAR -->
+<div id="topBar">
+    <a href="index.html" class="btn-back">← Home</a>
+    <div class="loc-pill"><span class="pulse"></span><span id="topLoc">Campus Lobby</span></div>
+</div>
+
+<!-- VIEWER -->
+<div class="viewer-container">
+    <iframe id="viewer" src="https://momento360.com/e/u/67dfe1cb293d49c5bd6191ac6355af3f?utm_campaign=embed&utm_source=other&heading=-44.62&pitch=20.64&field-of-view=75&size=medium&display-plan=true"></iframe>
+</div>
+
+<!-- AI PANEL -->
+<div id="aiPanel">
+    <div class="ph">
+        <div class="avatar">🎓</div>
+        <div>
+            <div class="guide-name">ARIA</div>
+            <div class="guide-sub">AI Campus Guide · PresUniverse</div>
+        </div>
+        <button class="sound-btn" id="soundBtn" onclick="toggleSound()" title="Mute ARIA voice">🔊</button>
+    </div>
+    <div class="loc-tag"><span>📍</span><span id="panelLoc">Campus Lobby</span></div>
+    <div id="chat"></div>
+    <div id="suggs"></div>
+    <div class="input-row">
+        <textarea id="txt" placeholder="Ask ARIA anything..." rows="1"
+            onkeydown="handleKey(event)" oninput="grow(this)"></textarea>
+
+        <button class="ibtn" id="micBtn" onclick="toggleMic()" title="Voice">🎙️</button>
+        <button class="ibtn" id="sendBtn" onclick="sendMsg()">➤</button>
+    </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div id="botNav">
+    <button class="abtn" onclick="nav(-1)">◀</button>
+    <div id="locLabel">🏛️ Campus Lobby</div>
+    <button class="abtn" onclick="nav(1)">▶</button>
+
+</div>
+
+<!-- Config is now handled by the backend server via /api/config -->
+
+<script src="assets/js/tour.js"></script>
+</body>
+</html>

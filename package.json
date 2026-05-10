@@ -1,0 +1,21 @@
+{
+  "name": "presuniverse",
+  "version": "1.0.0",
+  "description": "1. Get a free key at https://openrouter.ai/keys 2. Open `tour.html`, find the line:    ```js    const OPENROUTER_KEY = 'YOUR_OPENROUTER_API_KEY_HERE';    ```    Replace with your key.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@xenova/transformers": "^2.17.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "msedge-tts": "^2.0.5",
+    "vectra": "^0.14.0"
+  }
+}

@@ -1,0 +1,52 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+web_modules/
+
+# Local environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+config.json
+
+# Whisper.cpp binary models and builds
+whisper.cpp/models/*.bin
+whisper.cpp/build/
+whisper.cpp/**/*.exe
+whisper.cpp/**/*.dll
+whisper.cpp/**/*.lib
+whisper.cpp/**/*.obj
+whisper.cpp/**/*.pdb
+whisper.cpp/**/*.o
+whisper.cpp/**/*.a
+whisper.cpp/**/*.so
+whisper.cpp/**/*.dylib
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs and editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Agent files
+.agent/
