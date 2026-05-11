@@ -5,7 +5,9 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
-import { initRAG, retrieve } from './rag/rag.js';
+import { createRequire } from 'module';
+// RAG / TF-IDF: Disabled for Full Knowledge Injection
+// import { initRAG, retrieve } from './rag/rag.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,8 +27,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ── Init RAG (Vector Index) ──────────────────────────────────────────────────
-await initRAG();
+// ── Knowledge Base initialized via Full Injection ───────────────────────────
 
 // ── TTS Singleton ───────────────────────────────────────────────────────────
 let ttsInstance = null;
@@ -98,27 +99,54 @@ function loadAIConfig() {
 }
 loadAIConfig();
 
+// ── Load Full Knowledge Base once at startup ─────────────────────────────
+const KB_PATH = path.join(__dirname, 'pu_knowledge_clean.json');
+let FULL_KNOWLEDGE_BASE = "";
+
+try {
+    const rawKb = JSON.parse(fs.readFileSync(KB_PATH, 'utf-8'));
+    let kbString = "";
+    for (const [category, topics] of Object.entries(rawKb)) {
+        if (typeof topics === 'object' && topics !== null) {
+            for (const [title, content] of Object.entries(topics)) {
+                kbString += `### [${category}] ${title}\n${content}\n\n`;
+            }
+        } else {
+            kbString += `### ${category}\n${topics}\n\n`;
+        }
+    }
+    FULL_KNOWLEDGE_BASE = kbString.trim();
+    console.log(`[System] Knowledge Base Loaded: ${FULL_KNOWLEDGE_BASE.length} characters.`);
+} catch (err) {
+    console.error('[System] Failed to load KB:', err.message);
+}
+
 app.post('/api/chat', async (req, res) => {
     let messages = req.body.messages || [];
 
-    // ── 🚀 RAG: VECTOR SEARCH RETRIEVAL 🚀 ──
-    const lastUserMsg = messages.slice().reverse().find(m => m.role === 'user');
-    const query = lastUserMsg ? lastUserMsg.content : "";
-    
-    console.log(`[RAG] Searching vector index for: "${query.substring(0, 50)}..."`);
-    const relevantContext = await retrieve(query, 15);
+    // ── Full Knowledge Injection (Replacing RAG) ─────────────────────────
+    const sysIdx = messages.findIndex(m => m.role === 'system');
+    const knowledgeStr = `\n\n[UNIVERSITAS PRESIDEN - SOURCE OF TRUTH]:\n${FULL_KNOWLEDGE_BASE}`;
 
-    if (relevantContext) {
-        const sysIdx = messages.findIndex(m => m.role === 'system');
-        const knowledgeStr = `\n\n[CONTEXT]: ${relevantContext}`; 
-        
-        if (sysIdx !== -1) {
-            if (!messages[sysIdx].content.includes('[CONTEXT]')) {
-                messages[sysIdx].content += knowledgeStr;
-            }
-        } else {
-            messages.unshift({ role: 'system', content: `You are ARIA, the guide.${knowledgeStr}` });
+    if (sysIdx !== -1) {
+        if (!messages[sysIdx].content.includes('[UNIVERSITAS PRESIDEN')) {
+            messages[sysIdx].content += knowledgeStr;
         }
+    } else {
+        messages.unshift({ 
+            role: 'system', 
+            content: `You are ARIA, the professional tour guide for President University. 
+            
+            IMPORTANT GUIDELINES:
+            1. There are EXACTLY 7 faculties at President University. ALWAYS say 7 if asked for the count.
+            2. Use the [SOURCE OF TRUTH] below for ALL factual answers.
+            3. If the user asks about an acronym like "IMPACT", look for the section title or related content and explain it based on the text.
+            4. Be proactive: if a term is mentioned in the text, assume it's part of the university's identity and explain it.
+            5. Keep responses concise (2-4 sentences) and friendly.
+            6. Be extremely flexible with typos or slang. If a word looks similar to a topic in the [SOURCE OF TRUTH], assume that's what the user means.
+            
+            ${knowledgeStr}` 
+        });
     }
 
     // 1. Coba semua key Ollama dulu (Round Robin, STREAMING)
@@ -223,6 +251,17 @@ app.post('/api/chat', async (req, res) => {
 
 
 async function callAIStream(keyEntry, messages, body) {
+    const isOllama = keyEntry.name.includes('ollama');
+    const requestBody = {
+        model: keyEntry.model,
+        messages: messages,
+        max_tokens: body.max_tokens || 450,
+        temperature: body.temperature || 0.7,
+        stream: true
+    };
+    // Set context window to 100k. Perfect for Full KB Injection.
+    if (isOllama) requestBody.options = { num_ctx: 100000 };
+
     return fetch(`${keyEntry.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -230,13 +269,7 @@ async function callAIStream(keyEntry, messages, body) {
             'Authorization': `Bearer ${keyEntry.apiKey}`,
             ...keyEntry.headers
         },
-        body: JSON.stringify({
-            model: keyEntry.model,
-            messages: messages,
-            max_tokens: body.max_tokens || 450,
-            temperature: body.temperature || 0.8,
-            stream: true   // ⬅️ KUNCI: token mengalir langsung
-        })
+        body: JSON.stringify(requestBody)
     });
 }
 
@@ -259,8 +292,8 @@ app.all('/api/tts', async (req, res) => {
             audioStream.pipe(res);
 
             audioStream.on('end', () => {
-                ttsReady = false;
-                warmUpTTS();
+                // Keep it ready for next sentence
+                // ttsReady = true; 
             });
         } catch (streamErr) {
             console.warn('[TTS] Stream error, re-warming and retrying...', streamErr.message);

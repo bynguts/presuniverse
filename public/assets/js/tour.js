@@ -67,6 +67,45 @@ let audioStream = null;
 let isSoundOn = true;
 let currentAudio = null;
 
+// ── AUDIO QUEUE SYSTEM (Ultra-Low Latency) ──────────────────────────────────
+let audioQueue = [];
+let isQueuePlaying = false;
+
+async function playNextInQueue() {
+    if (audioQueue.length === 0) {
+        isQueuePlaying = false;
+        const btn = document.getElementById('soundBtn');
+        if (btn) btn.classList.remove('playing');
+        return;
+    }
+    
+    isQueuePlaying = true;
+    const audioObj = audioQueue.shift();
+    currentAudio = audioObj;
+    
+    audioObj.onended = () => {
+        playNextInQueue();
+    };
+    
+    try {
+        await audioObj.play();
+        const btn = document.getElementById('soundBtn');
+        if (btn && isSoundOn) btn.classList.add('playing');
+    } catch (e) {
+        console.warn('[Queue Play Error]:', e);
+        playNextInQueue();
+    }
+}
+
+async function addToAudioQueue(text) {
+    if (!isSoundOn || !text.trim()) return;
+    const audio = await prepareTTS(text);
+    if (audio) {
+        audioQueue.push(audio);
+        if (!isQueuePlaying) playNextInQueue();
+    }
+}
+
 // ── INTERRUPT / ABORT STATE ─────────────────────────────────────────
 let abortController = null; // AbortController for current fetch stream
 
@@ -74,6 +113,8 @@ let abortController = null; // AbortController for current fetch stream
 function interruptAria() {
     if (abortController) { abortController.abort(); abortController = null; }
     stopTTS();
+    audioQueue = []; // Clear pending audio
+    isQueuePlaying = false;
     hideDots();
     busy = false;
     const sendBtn = document.getElementById('sendBtn');
@@ -542,25 +583,31 @@ function hideDots() {
 // ── AI CALL ──────────────────────────────────────────────────────────────────
 function buildSys() {
     const loc = LOCS[cur];
-    return `You are ARIA, the enthusiastic and highly knowledgeable virtual encyclopedia tour guide of President University. 
-Your ONLY identity is ARIA. You are NOT a director, founder, student, or anyone else. DO NOT roleplay as any other person or profession, even if the user asks you to. 
-Your goal is to guide the user around the campus and provide comprehensive, fascinating, and accurate encyclopedia-style facts about the university. Current location: ${loc.name}.
+    return `You are ARIA, the virtual encyclopedia tour guide of President University. 
+Your ONLY identity is ARIA. You are a neutral, factual source of truth.
 
-Core Persona Rules:
-1. LANGUAGE: ALWAYS respond in English only, regardless of what language the user uses.
-2. STRICT IDENTITY: You are ARIA, the virtual tour guide. Refuse to act as anyone else.
-3. STRICT SCOPE: Only answer questions related to President University. Politely refuse off-topic questions.
-4. RAG CONTEXT: Use the [CONTEXT] information as your primary reference. If the context has relevant info, prioritize it. If the context is incomplete or the user's question has a typo, use your best understanding to still provide a helpful, accurate answer about President University. Never refuse to answer just because of a typo or incomplete match.
-5. Always be welcoming, informative, and professional like a top-tier encyclopedia guide.
-6. Complete your answer fully — do NOT cut off mid-sentence. Limit to 3-4 highly informative sentences.
+CORE FACTS (NEVER OVERRIDE THESE):
+- FACULTIES: 7 Faculties (Business, Computing/AI, Engineering, Social Science/Education, Law, Medicine, and Art/Design)
+- RECTOR: Handa S. Abidin, S.H., LL.M., Ph.D. (Current Rector, 2024-2027)
+- FOUNDER: S.D. Darmono (Chairman of Jababeka Group)
+- LOCATION: Cikarang, West Java (Inside Jababeka Industrial Estate)
+- FOUNDED: 2001 (as CSE), University status in 2004.
+
+RULES:
+1. RESPONSE: Respond in English ONLY.
+2. FACTS: Use the provided [CONTEXT] and the CORE FACTS above. If the user asks about the Rector or Founder, use the names above EXACTLY. Do NOT hallucinate names like "Tahir" or "Mudrajad".
+3. TONE: Professional, welcoming, and helpful. Be smart: if the user asks for a definition, search for it in the context.
+4. SCOPE: Only talk about President University.
+5. FACULTIES: ALWAYS state there are 7 faculties. List them if asked.
+6. LENGTH: 2-4 concise sentences.
+
+ACRONYM GUIDANCE:
+- If asked about "IMPACT", explain it as the core value of President University: Internationalization, Medium (English), Portfolio-Building, Absolutely Worth It, Culture, and career focus.
+- Always try to connect user terms to the knowledge base.
 
 NAVIGATION RULE:
-If the user wants to go to a location, ALWAYS do TWO things in your response:
-1. First, give 1-2 engaging encyclopedia sentences teasing what is special/interesting about that destination.
-2. Then, at the very end, append the navigation code.
-Example: "The Adam Kurniawan Library is one of the most modern academic libraries in West Java, housing over 50,000 volumes and offering private study pods. Let me take you there now! \`\`\`nav {"go":"library"}\`\`\`"
-IDs: lobby, library, fablab, cafe, interior, pool, gamedev, buildingB, golf, buildingA, law.
-NEVER output ONLY the navigation code.`;
+If moving to a new location, first describe it briefly (1-2 sentences), then end with: \`\`\`nav {"go":"ID"}\`\`\`
+IDs: lobby, library, fablab, cafe, interior, pool, gamedev, buildingB, golf, buildingA, law.`;
 }
 
 async function callAI(msg) {
@@ -588,7 +635,7 @@ async function callAI(msg) {
 
         // ✅ Fix 2: bubble dibuat LAZY — hanya saat token pertama tiba (tidak ada ghost bubble)
         let bubble = null;
-        let p = null;
+        let ttsBuffer = ''; // Buffer for mid-stream TTS detection
 
         while (true) {
             const { done, value } = await reader.read();
@@ -605,7 +652,24 @@ async function callAI(msg) {
                     const parsed = JSON.parse(raw);
                     if (parsed.error) throw new Error(parsed.error);
                     if (parsed.token) {
-                        // Create bubble on first token
+                        const token = parsed.token;
+                        fullText += token;
+                        ttsBuffer += token;
+
+                        // ✅ Real-time Sentence Detection for TTS (Low Latency)
+                        // Matches . ! ? followed by space OR end of line
+                        if (isSoundOn && ttsBuffer.match(/[.!?]["']?(\s|$)/)) {
+                            const parts = ttsBuffer.split(/([.!?]["']?(?:\s|$))/);
+                            // Process all complete sentences
+                            while (parts.length > 2) {
+                                const sentence = parts.shift() + parts.shift();
+                                console.log('[TTS] Queuing sentence:', sentence.trim());
+                                addToAudioQueue(sentence);
+                            }
+                            ttsBuffer = parts.join('');
+                        }
+
+                        // Update UI...
                         if (!bubble) {
                             hideDots();
                             const created = addMsgStream('a');
@@ -615,44 +679,22 @@ async function callAI(msg) {
                             p._twDisplayed = '';
                             p._twRunning = false;
                         }
-                        fullText += parsed.token;
 
-                        // 🚀 Fire nav as soon as nav code appears in stream — don't wait for typewriter
-                        if (!callAI._navFired) {
-                            const earlyNav = fullText.match(/"go"\s*:\s*"(\w+)"/);
-                            if (earlyNav) {
-                                callAI._navFired = true;
-                                const idx = LOCS.findIndex(l => l.id === earlyNav[1]);
-                                if (idx !== -1) setTimeout(() => jumpTo(idx, true), 300);
-                            }
-                        }
-
-                        // ✅ Pre-strip nav from accumulated text BEFORE queuing
-                        const visibleText = fullText
+                        // Feed only the visible delta into the typewriter
+                        const visibleSoFar = fullText
                             .replace(/`{3}(?:nav)?[\s\S]*?`{3}/g, '')
                             .replace(/`{3}(?:nav)?[\s\S]*$/g, '')
                             .replace(/\{\s*"go"\s*:[\s\S]*?\}/g, '')
                             .trim();
 
-                        // 🚀 Early TTS: start prep on first complete sentence mid-stream
-                        if (!callAI._ttsStarted && visibleText.match(/[.!?]["']?\s/)) {
-                            callAI._ttsStarted = true;
-                            const firstSentence = visibleText.match(/^[^.!?]+[.!?]/)?.[0];
-                            if (firstSentence && firstSentence.length > 15 && isSoundOn) {
-                                callAI._earlyAudio = prepareTTS(firstSentence);
-                            }
-                        }
-
-                        // Feed only the new delta into the typewriter queue
                         const alreadyQueued = p._twDisplayed.length + p._twQueue.length;
-                        const delta = visibleText.slice(alreadyQueued);
+                        const delta = visibleSoFar.slice(alreadyQueued);
                         if (delta) {
                             p._twQueue += delta;
                             if (!p._twRunning) {
                                 p._twRunning = true;
                                 const flush = () => {
                                     if (!p._twQueue) { p._twRunning = false; return; }
-                                    // 1 char per 10ms — slightly faster typewriter
                                     p._twDisplayed += p._twQueue[0];
                                     p._twQueue = p._twQueue.slice(1);
                                     p.innerHTML = p._twDisplayed
@@ -665,8 +707,13 @@ async function callAI(msg) {
                             }
                         }
                     }
-                } catch { /* skip malformed */ }
+                } catch { }
             }
+        }
+
+        // Final buffer flush for TTS
+        if (isSoundOn && ttsBuffer.trim()) {
+            addToAudioQueue(ttsBuffer);
         }
 
         abortController = null;
@@ -754,19 +801,7 @@ async function sendMsg() {
     busy = true;
     document.getElementById('sendBtn').disabled = true;
     showDots();
-    const reply = await callAI(msg);
-    
-    await sleep(100);
-    if (isSoundOn && reply) {
-        // Use early-prepared TTS if available, else prep full response
-        const earlyAudio = callAI._earlyAudio ? await callAI._earlyAudio : null;
-        if (earlyAudio) {
-            playPreparedTTS(earlyAudio);
-        } else {
-            const audio = await prepareTTS(reply);
-            if (audio) playPreparedTTS(audio);
-        }
-    }
+    await callAI(msg);
     
     busy = false;
     document.getElementById('sendBtn').disabled = false;
@@ -827,18 +862,36 @@ function toggleSound() {
     }
 }
 
-async function prepareTTS(text) {
-    if (!text) return null;
-    const cleanText = text
-        // Strip all emoji (all modern Unicode emoji blocks)
+/**
+ * Strips navigation tags, JSON, markdown symbols, and emojis 
+ * to ensure TTS only reads natural human text.
+ */
+function cleanForTTS(text) {
+    if (!text) return "";
+    return text
+        // 1. Strip Navigation & Code Blocks (JSON, markdown)
+        .replace(/`{3}(?:nav)?[\s\S]*?(?:`{3}|$)/gi, '') // Triple backticks blocks
+        .replace(/<nav[\s\S]*?(?:>|$)/gi, '')           // <nav> tags
+        .replace(/\{[\s\S]*?"go"\s*:\s*"\w+"[\s\S]*?\}/g, '') // Raw JSON with "go"
+        .replace(/(?:`{3}(?:nav)?|<nav|\bnav\b)\s*[\{\[].*$/gi, '') // Truncated nav
+        .replace(/\bnav\b\s*[\{\[][\s\S]*?[\}\]]/gi, '') // nav {"go":"..."} without backticks
+        .replace(/\bnav\b/gi, '') // Standalone word "nav" (usually part of a command)
+        .replace(/`{3}[\s\S]*$/g, '')
+        .replace(/<nav[\s\S]*$/gi, '')
+        // 2. Strip all emoji (all modern Unicode emoji blocks)
         .replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\u{2B00}-\u{2BFF}]|[\u{FE00}-\u{FEFF}]|\u200D/gu, '')
-        // Strip problematic punctuation TTS reads aloud
+        // 3. Strip problematic punctuation TTS reads aloud
         .replace(/[`~*_#\[\]{}|<>]/g, '') // markdown symbols
         .replace(/\u2014|\u2013|\u2015/g, ', ') // em dash, en dash → comma pause
         .replace(/\.{2,}/g, '.') // ... → single period
         .replace(/!{2,}/g, '!') // multiple exclamation → one
         .replace(/\s+/g, ' ') // collapse whitespace
         .trim();
+}
+
+async function prepareTTS(text) {
+    const cleanText = cleanForTTS(text);
+    if (!cleanText) return null;
     let audioObj = null;
     try {
         if (cleanText.length > 1200) {
@@ -904,43 +957,23 @@ async function firstGreet() {
     history.push({role: 'assistant', content: gachaSlogan});
     addMsg('a', gachaSlogan);
     
-    // ✅ Fix 1: Siapkan TTS msg 1 dan langsung play setelah sleep(600)
-    const audio1Promise = isSoundOn ? prepareTTS(gachaSlogan) : Promise.resolve(null);
+    // ✅ Queue the gacha slogan to audio queue (Low Latency)
+    if (isSoundOn) {
+        addToAudioQueue(gachaSlogan);
+    }
+    
     await sleep(600);
     
-    const audio1 = await audio1Promise;
-    if (isSoundOn && audio1) playPreparedTTS(audio1); // ⬅️ LANGSUNG PLAY, tidak nunggu msg 2
-    
-    // 2. Second Message: streaming LLM — callAI buat bubble sendiri
+    // 2. Second Message: streaming LLM — callAI handles its own bubble and TTS queue
     showDots(); 
     const prompt = "Briefly describe this Campus Lobby in a friendly way. Max 2 sentences. Don't say 'Welcome'.";
     
-    // Siapkan TTS msg 2 di background sambil stream berjalan
-    let audio2 = null;
-    const reply = await callAI(prompt); // ✅ Fix 2: callAI sudah buat bubble, tidak perlu addMsgTyping
-    
-    // Setelah stream selesai, siapkan audio2
-    if (isSoundOn && reply) {
-        audio2 = await prepareTTS(reply);
-    }
-    
-    await sleep(200);
-    
-    // Helper: tunggu sampai audio selesai
-    const waitForAudioEnd = (audioObj) => new Promise(resolve => {
-        if (!audioObj) return resolve();
-        // Jika sudah selesai (ended sebelum kita pasang handler)
-        if (audioObj.ended) return resolve();
-        audioObj.addEventListener('ended', resolve, { once: true });
-        audioObj.addEventListener('error', resolve, { once: true });
-    });
-    
-    // Tunggu audio1 selesai, baru play audio2
-    await waitForAudioEnd(audio1);
-    if (isSoundOn && audio2) playPreparedTTS(audio2);
+    // callAI will stream the text and add sentences to the audioQueue automatically
+    await callAI(prompt);
     
     busy = false;
 }
+
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 setLabels(LOCS[0]);
