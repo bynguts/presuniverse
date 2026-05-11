@@ -149,13 +149,57 @@ app.post('/api/chat', async (req, res) => {
         });
     }
 
-    // 1. Coba semua key Ollama dulu (Round Robin, STREAMING)
+    // 1. Coba OpenRouter (Primary)
+    for (const keyEntry of fallbackPool) {
+        try {
+            console.log(`[Chat] Streaming Primary: ${keyEntry.name} (${keyEntry.model})`);
+            const response = await callAIStream(keyEntry, messages, req.body);
+            if (response.ok) {
+                res.setHeader('Content-Type', 'text/event-stream');
+                res.setHeader('Cache-Control', 'no-cache');
+                res.setHeader('Connection', 'keep-alive');
+                res.flushHeaders();
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullText = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+                    for (const line of lines) {
+                        const raw = line.slice(6).trim();
+                        if (raw === '[DONE]') continue;
+                        try {
+                            const parsed = JSON.parse(raw);
+                            const token = parsed.choices?.[0]?.delta?.content || '';
+                            if (token) {
+                                fullText += token;
+                                res.write(`data: ${JSON.stringify({ token })}\n\n`);
+                            }
+                        } catch { }
+                    }
+                }
+
+                res.write(`data: ${JSON.stringify({ done: true, full: fullText })}\n\n`);
+                res.end();
+                return;
+            }
+        } catch (err) {
+            console.error(`[Chat] Primary stream error:`, err.message);
+        }
+    }
+
+    // 2. Fallback ke Ollama jika OpenRouter gagal
+    console.warn(`[Chat] OpenRouter failed or exhausted. Switching to Ollama Fallback...`);
     for (let i = 0; i < ollamaPool.length; i++) {
         const keyEntry = ollamaPool[currentOllamaIndex];
         currentOllamaIndex = (currentOllamaIndex + 1) % ollamaPool.length;
 
         try {
-            console.log(`[Chat] Streaming Ollama key ${currentOllamaIndex}/${ollamaPool.length} (${keyEntry.model})`);
+            console.log(`[Chat] Streaming Ollama fallback key ${currentOllamaIndex}/${ollamaPool.length} (${keyEntry.model})`);
             const response = await callAIStream(keyEntry, messages, req.body);
             if (response.ok) {
                 // ── Setup SSE headers ──
@@ -195,53 +239,9 @@ app.post('/api/chat', async (req, res) => {
                 return;
             }
             const errText = await response.text();
-            console.warn(`[Chat] Ollama stream failed: ${response.status} - ${errText}`);
+            console.warn(`[Chat] Ollama fallback failed: ${response.status} - ${errText}`);
         } catch (err) {
-            console.error(`[Chat] Ollama stream error:`, err.message);
-        }
-    }
-
-    // 2. Fallback ke OpenRouter jika semua Ollama gagal
-    console.warn(`[Chat] ALL Ollama keys exhausted. Switching to Fallback...`);
-    for (const keyEntry of fallbackPool) {
-        try {
-            console.log(`[Chat] Streaming Fallback: ${keyEntry.name} (${keyEntry.model})`);
-            const response = await callAIStream(keyEntry, messages, req.body);
-            if (response.ok) {
-                res.setHeader('Content-Type', 'text/event-stream');
-                res.setHeader('Cache-Control', 'no-cache');
-                res.setHeader('Connection', 'keep-alive');
-                res.flushHeaders();
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let fullText = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    const chunk = decoder.decode(value, { stream: true });
-                    const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
-                    for (const line of lines) {
-                        const raw = line.slice(6).trim();
-                        if (raw === '[DONE]') continue;
-                        try {
-                            const parsed = JSON.parse(raw);
-                            const token = parsed.choices?.[0]?.delta?.content || '';
-                            if (token) {
-                                fullText += token;
-                                res.write(`data: ${JSON.stringify({ token })}\n\n`);
-                            }
-                        } catch { }
-                    }
-                }
-
-                res.write(`data: ${JSON.stringify({ done: true, full: fullText })}\n\n`);
-                res.end();
-                return;
-            }
-        } catch (err) {
-            console.error(`[Chat] Fallback stream error:`, err.message);
+            console.error(`[Chat] Ollama fallback error:`, err.message);
         }
     }
 
