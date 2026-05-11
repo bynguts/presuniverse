@@ -1,54 +1,76 @@
 // ── DATA ────────────────────────────────────────────────────────────────────
 const LOCS = [
 
-    { id:'lobby',     name:'Campus Lobby',                emoji:'🏛️', kw:['lobby','entrance','main','masuk','depan','hall','aula'],
-      link:'https://momento360.com/e/u/67dfe1cb293d49c5bd6191ac6355af3f?utm_campaign=embed&utm_source=other&heading=-44.62&pitch=20.64&field-of-view=75',
-      desc:'The grand main entrance and welcoming hub of President University — visitors first step into this elegant lobby before exploring campus.' },
-    { id:'library',   name:'Library',                    emoji:'📚', kw:['library','perpustakaan','buku','book','read','baca','pustaka'],
-      link:'https://momento360.com/e/u/86ed496a88644e66856a147e0fd5de94?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=100&size=medium&display-plan=true',
-      desc:'A modern multi-story library with thousands of academic books, digital resources, private study rooms, and comfortable reading areas.' },
-    { id:'fablab',    name:'Fablab',                     emoji:'🔧', kw:['fablab','lab','maker','fabrication','3d','print','workshop','mesin'],
-      link:'https://momento360.com/e/u/7424e69d3e35472b948e5a0f4e7c6439?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
-      desc:'A state-of-the-art fabrication lab with 3D printers, laser cutters, CNC machines, and electronics workstations for hands-on innovation.' },
-    { id:'cafe',      name:'Cafe',                       emoji:'☕', kw:['cafe','coffee','food','makan','minum','kantin','cafeteria','restaurant','resto','kopi','warung','jajan'],
-      link:'https://momento360.com/e/u/c2f6450ff339461d8bdc726d106c0e76?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
-      desc:'A cozy campus cafe offering meals, snacks, and beverages — the perfect place to relax, eat, and collaborate with friends between classes.' },
-    { id:'interior',  name:'Interior Design Classroom',  emoji:'🎨', kw:['interior','design','art','creative','classroom','studio','seni'],
-      link:'https://momento360.com/e/u/ee7b26e299d04a18990e1e869149cf78?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
-      desc:'A professional creative studio for Interior Design students with rendering workstations, material samples, and design review spaces.' },
-    { id:'pool',      name:'Swimming Pool',               emoji:'🏊', kw:['pool','swim','kolam','renang','sport','olahraga','swimming'],
-      link:'https://momento360.com/e/u/eb0be281cd7547d9a5b55dee9abc6b00?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
-      desc:'An Olympic-standard indoor swimming pool supporting varsity athletes, PE classes, and recreational swimming for all students.' },
-    { id:'gamedev',   name:'Game Development Classroom', emoji:'🎮', kw:['game','gaming','gamedev','developer','coding','programming','komputer','computer'],
-      link:'https://momento360.com/e/u/0d6f410a3f6d46e298cec9f0524ddb90?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
-      desc:'A cutting-edge game dev lab with high-performance gaming PCs, development tools (Unity, Unreal), and collaborative project spaces.' },
-    { id:'buildingB', name:'Building B (Classroom)',      emoji:'🏢', kw:['building b','gedung b','classroom','kelas','ruang kelas'],
-      link:'https://momento360.com/e/u/ac812ecf42544adf8a636c06a7972bdc?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
-      desc:'General-purpose academic classrooms in Building B, equipped with projectors, air conditioning, and modern furniture for comfortable learning.' },
-    { id:'golf',      name:'Golf Club',                   emoji:'⛳', kw:['golf','sport','green','club','recreation','lapangan'],
-      link:'https://momento360.com/e/u/3fe0e34dcb764b62b62a2db150872091?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
-      desc:'A private golf club and driving range on campus grounds — one of the unique perks of studying at President University.' },
-    { id:'buildingA', name:'Building A (Classroom)',      emoji:'🏫', kw:['building a','gedung a','classroom','kelas','lecture'],
-      link:'https://momento360.com/e/u/f3254bbdd89743f9ba6b2c5db7a6c890?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
-      desc:'The main academic building with large lecture halls and seminar rooms for a variety of faculties and programs.' },
-    { id:'law',       name:'Classroom for Law Student',   emoji:'⚖️', kw:['law','hukum','legal','moot court','mahkamah','pengadilan'],
-      link:'https://momento360.com/e/u/0e1410fe2b4c436ea8f469b88e15050c?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
-      desc:'Specialized moot court and seminar rooms for Faculty of Law students, designed to simulate real courtroom environments.' },
+    {
+        id: 'lobby', name: 'Campus Lobby', icon: 'fa-solid fa-building-columns', kw: ['lobby', 'entrance', 'main', 'masuk', 'depan', 'hall', 'aula'],
+        link: 'https://momento360.com/e/u/67dfe1cb293d49c5bd6191ac6355af3f?utm_campaign=embed&utm_source=other&heading=-44.62&pitch=20.64&field-of-view=75',
+        desc: 'The grand main entrance and welcoming hub of President University — visitors first step into this elegant lobby before exploring campus.'
+    },
+    {
+        id: 'library', name: 'Library', icon: 'fa-solid fa-book-open', kw: ['library', 'perpustakaan', 'buku', 'book', 'read', 'baca', 'pustaka'],
+        link: 'https://momento360.com/e/u/86ed496a88644e66856a147e0fd5de94?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=100&size=medium&display-plan=true',
+        desc: 'A modern multi-story library with thousands of academic books, digital resources, private study rooms, and comfortable reading areas.'
+    },
+    {
+        id: 'fablab', name: 'Fablab', icon: 'fa-solid fa-screwdriver-wrench', kw: ['fablab', 'lab', 'maker', 'fabrication', '3d', 'print', 'workshop', 'mesin'],
+        link: 'https://momento360.com/e/u/7424e69d3e35472b948e5a0f4e7c6439?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+        desc: 'A state-of-the-art fabrication lab with 3D printers, laser cutters, CNC machines, and electronics workstations for hands-on innovation.'
+    },
+    {
+        id: 'cafe', name: 'Cafe', icon: 'fa-solid fa-mug-hot', kw: ['cafe', 'coffee', 'food', 'makan', 'minum', 'kantin', 'cafeteria', 'restaurant', 'resto', 'kopi', 'warung', 'jajan'],
+        link: 'https://momento360.com/e/u/c2f6450ff339461d8bdc726d106c0e76?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+        desc: 'A cozy campus cafe offering meals, snacks, and beverages — the perfect place to relax, eat, and collaborate with friends between classes.'
+    },
+    {
+        id: 'interior', name: 'Interior Design Classroom', icon: 'fa-solid fa-palette', kw: ['interior', 'design', 'art', 'creative', 'classroom', 'studio', 'seni'],
+        link: 'https://momento360.com/e/u/ee7b26e299d04a18990e1e869149cf78?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+        desc: 'A professional creative studio for Interior Design students with rendering workstations, material samples, and design review spaces.'
+    },
+    {
+        id: 'pool', name: 'Swimming Pool', icon: 'fa-solid fa-person-swimming', kw: ['pool', 'swim', 'kolam', 'renang', 'sport', 'olahraga', 'swimming'],
+        link: 'https://momento360.com/e/u/eb0be281cd7547d9a5b55dee9abc6b00?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+        desc: 'An Olympic-standard indoor swimming pool supporting varsity athletes, PE classes, and recreational swimming for all students.'
+    },
+    {
+        id: 'gamedev', name: 'Game Development Classroom', icon: 'fa-solid fa-gamepad', kw: ['game', 'gaming', 'gamedev', 'developer', 'coding', 'programming', 'komputer', 'computer'],
+        link: 'https://momento360.com/e/u/0d6f410a3f6d46e298cec9f0524ddb90?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+        desc: 'A cutting-edge game dev lab with high-performance gaming PCs, development tools (Unity, Unreal), and collaborative project spaces.'
+    },
+    {
+        id: 'buildingB', name: 'Building B (Classroom)', icon: 'fa-solid fa-building', kw: ['building b', 'gedung b', 'classroom', 'kelas', 'ruang kelas'],
+        link: 'https://momento360.com/e/u/ac812ecf42544adf8a636c06a7972bdc?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+        desc: 'General-purpose academic classrooms in Building B, equipped with projectors, air conditioning, and modern furniture for comfortable learning.'
+    },
+    {
+        id: 'golf', name: 'Golf Club', icon: 'fa-solid fa-golf-ball-tee', kw: ['golf', 'sport', 'green', 'club', 'recreation', 'lapangan'],
+        link: 'https://momento360.com/e/u/3fe0e34dcb764b62b62a2db150872091?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+        desc: 'A private golf club and driving range on campus grounds — one of the unique perks of studying at President University.'
+    },
+    {
+        id: 'buildingA', name: 'Building A (Classroom)', icon: 'fa-solid fa-school', kw: ['building a', 'gedung a', 'classroom', 'kelas', 'lecture'],
+        link: 'https://momento360.com/e/u/f3254bbdd89743f9ba6b2c5db7a6c890?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+        desc: 'The main academic building with large lecture halls and seminar rooms for a variety of faculties and programs.'
+    },
+    {
+        id: 'law', name: 'Classroom for Law Student', icon: 'fa-solid fa-scale-balanced', kw: ['law', 'hukum', 'legal', 'moot court', 'mahkamah', 'pengadilan'],
+        link: 'https://momento360.com/e/u/0e1410fe2b4c436ea8f469b88e15050c?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=medium&display-plan=true',
+        desc: 'Specialized moot court and seminar rooms for Faculty of Law students, designed to simulate real courtroom environments.'
+    },
 ];
 
 const SUGGS = {
-    lobby:     ['Where is the cafe? ☕','Show me the library 📚','What facilities are available?'],
-    library:   ['How many books are here?','Show me the Fablab 🔧','Where can I eat? 🍽️'],
-    cafe:      ['What food is available? 🍕','Take me to the pool 🏊','Back to lobby 🏛️'],
-    pool:      ['Tell me about sports here','Show me Golf Club ⛳','Where is Game Dev? 🎮'],
-    fablab:    ['What machines are available?','Show me Game Dev class 🎮','Any design studios?'],
-    gamedev:   ['What software do they use?','Show me Fablab 🔧','Where is Building B?'],
-    golf:      ['Is this open to all students?','Show me the pool 🏊','Tell me more about sports'],
-    interior:  ['What programs are in this building?','Show me Building A','Where is the library?'],
-    buildingA: ['Show me Building B','Take me to the cafe ☕','What faculties are here?'],
-    buildingB: ['Show me Building A','Take me to the library 📚','Where is the pool?'],
-    law:       ['What is studied in law here?','Show me Building A','Take me to the library'],
-    default:   ['Tell me about this room','Where is the cafe? ☕','Show me the library 📚'],
+    lobby: ['Where is the cafe?', 'Show me the library', 'What facilities are available?'],
+    library: ['How many books are here?', 'Show me the Fablab', 'Where can I eat?'],
+    cafe: ['What food is available?', 'Take me to the pool', 'Back to lobby'],
+    pool: ['Tell me about sports here', 'Show me Golf Club', 'Where is Game Dev?'],
+    fablab: ['What machines are available?', 'Show me Game Dev class', 'Any design studios?'],
+    gamedev: ['What software do they use?', 'Show me Fablab', 'Where is Building B?'],
+    golf: ['Is this open to all students?', 'Show me the pool', 'Tell me more about sports'],
+    interior: ['What programs are in this building?', 'Show me Building A', 'Where is the library?'],
+    buildingA: ['Show me Building B', 'Take me to the cafe', 'What faculties are here?'],
+    buildingB: ['Show me Building A', 'Take me to the library', 'Where is the pool?'],
+    law: ['What is studied in law here?', 'Show me Building A', 'Take me to the library'],
+    default: ['Tell me about this room', 'Where is the cafe?', 'Show me the library'],
 };
 
 // ── STATE ────────────────────────────────────────────────────────────────────
@@ -78,15 +100,15 @@ async function playNextInQueue() {
         if (btn) btn.classList.remove('playing');
         return;
     }
-    
+
     isQueuePlaying = true;
     const audioObj = audioQueue.shift();
     currentAudio = audioObj;
-    
+
     audioObj.onended = () => {
         playNextInQueue();
     };
-    
+
     try {
         await audioObj.play();
         const btn = document.getElementById('soundBtn');
@@ -156,15 +178,15 @@ function startRecWebSpeech() {
         recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        
+
         // Use the dynamically selected language
         recognition.lang = currentSTTLang;
-        
+
         recognition.onstart = () => {
             isRec = true;
             const btn = document.getElementById('micBtn');
             btn.classList.add('mic-on');
-            btn.innerHTML = '⏹️';
+            btn.innerHTML = '<i class="fa-solid fa-stop" aria-hidden="true"></i>';
             btn.title = 'Click to stop & send';
             startRecTimerWebSpeech();
         };
@@ -204,7 +226,7 @@ function startRecWebSpeech() {
             clearInterval(recTimerInterval);
             document.getElementById('txt').placeholder = 'Ask ARIA anything...';
             isRec = false;
-            
+
             if (text && clickedStop) {
                 sendMsg();
             }
@@ -230,17 +252,17 @@ function stopRecWebSpeech() {
     clearInterval(recTimerInterval);
     const btn = document.getElementById('micBtn');
     btn.classList.remove('mic-on');
-    btn.innerHTML = '⏳';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>';
     btn.title = 'Processing...';
     document.getElementById('txt').placeholder = 'Processing...';
 }
 
 function startRecTimerWebSpeech() {
     recSeconds = 0;
-    document.getElementById('txt').placeholder = '🎙️ Listening...';
+    document.getElementById('txt').placeholder = 'Listening...';
     recTimerInterval = setInterval(() => {
         recSeconds++;
-        document.getElementById('txt').placeholder = `🎙️ Listening: ${recSeconds}s... (⏹ stop)`;
+        document.getElementById('txt').placeholder = `Listening: ${recSeconds}s... (press stop)`;
     }, 1000);
 }
 
@@ -254,7 +276,7 @@ async function startRec() {
     }
 
     // Pick best supported format for Whisper.cpp (prefers webm/ogg, fallback wav)
-    const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg']
+    const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg']
         .find(m => MediaRecorder.isTypeSupported(m)) || '';
 
     audioChunks = [];
@@ -269,7 +291,7 @@ async function startRec() {
     isRec = true;
     const btn = document.getElementById('micBtn');
     btn.classList.add('mic-on');
-    btn.innerHTML = '⏹️';
+    btn.innerHTML = '<i class="fa-solid fa-stop" aria-hidden="true"></i>';
     btn.title = 'Click to stop & transcribe';
 
     // Show live timer in input placeholder
@@ -284,7 +306,7 @@ function stopRec() {
     clearInterval(recTimerInterval);
     const btn = document.getElementById('micBtn');
     btn.classList.remove('mic-on');
-    btn.innerHTML = '⏳';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>';
     btn.title = 'Transcribing...';
     document.getElementById('txt').placeholder = 'Transcribing with AI...';
 }
@@ -293,10 +315,10 @@ let recTimerInterval = null;
 let recSeconds = 0;
 function startRecTimer() {
     recSeconds = 0;
-    document.getElementById('txt').placeholder = '🎙️ Recording...';
+    document.getElementById('txt').placeholder = 'Recording...';
     recTimerInterval = setInterval(() => {
         recSeconds++;
-        document.getElementById('txt').placeholder = `🎙️ Recording: ${recSeconds}s... (⏹ stop)`;
+        document.getElementById('txt').placeholder = `Recording: ${recSeconds}s... (press stop)`;
     }, 1000);
 }
 
@@ -334,7 +356,7 @@ async function transcribeWithWhisper() {
         console.log(`[STT] Transcription success via provider: ${data.provider}`, JSON.stringify(transcript));
     } catch (err) {
         console.error('[STT] Transcription failed:', err);
-        showMicError('⚠️ Transcription failed. Both OpenRouter and Whisper fallback failed.');
+        showMicError('Transcription failed. Both OpenRouter and Whisper fallback failed.');
         resetMicBtn();
         return;
     }
@@ -342,7 +364,7 @@ async function transcribeWithWhisper() {
     resetMicBtn();
 
     const SILENCE_TOKENS = ['[BLANK_AUDIO]', '(silence)', '[silence]', '[ Silence ]', '[ BLANK_AUDIO ]'];
-    const isNoise = !transcript 
+    const isNoise = !transcript
         || SILENCE_TOKENS.some(t => transcript.includes(t))
         || transcript.trim().split(/\s+/).length === 1 && transcript.trim().length <= 3;
 
@@ -399,35 +421,39 @@ function bufferToWav(abuffer) {
     setUint16(numOfChan * 2); setUint16(16);
     setUint32(0x61746164); setUint32(length - pos - 4);
 
-    for(let i=0; i<abuffer.length; i++) {
-        for(let ch=0; ch<numOfChan; ch++) {
+    for (let i = 0; i < abuffer.length; i++) {
+        for (let ch = 0; ch < numOfChan; ch++) {
             let s = Math.max(-1, Math.min(1, abuffer.getChannelData(ch)[i]));
             view.setInt16(pos, s < 0 ? s * 32768 : s * 32767, true);
             pos += 2;
         }
     }
-    return new Blob([buffer], {type: "audio/wav"});
+    return new Blob([buffer], { type: "audio/wav" });
 }
 
 function resetMicBtn() {
     const btn = document.getElementById('micBtn');
-    btn.innerHTML = '🎙️';
+    btn.innerHTML = '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
     btn.title = 'Voice input (Whisper)';
     btn.classList.remove('mic-on');
 }
 
 function showMicError(msg) {
     // Show error as a system message in chat
-    addMsg('sys', `⚠️ ${msg}`);
+    addMsg('sys', msg);
+}
+
+function renderLocIcon(loc) {
+    return `<i class="${loc.icon}" aria-hidden="true"></i>`;
 }
 
 // ── PANEL ────────────────────────────────────────────────────────────────────
 function togglePanel() {
     panelOpen = !panelOpen;
     const panel = document.getElementById('aiPanel');
-    
+
     panel.classList.toggle('open', panelOpen);
-    
+
     if (panelOpen && history.length === 0) {
         setTimeout(autoGreet, 450);
     }
@@ -450,14 +476,14 @@ function loadScene(animate = false, fromAI = false) {
     if (animate) {
         const ov = document.getElementById('overlay');
         const fl = document.getElementById('locFlash');
-        fl.textContent = loc.emoji + ' ' + loc.name;
+        fl.innerHTML = `${renderLocIcon(loc)} <span>${loc.name}</span>`;
         ov.classList.add('on'); fl.classList.add('on');
         setTimeout(() => {
             document.getElementById('viewer').src = loc.link;
             setLabels(loc);
         }, 280);
         setTimeout(() => { ov.classList.remove('on'); fl.classList.remove('on'); }, 850);
-        
+
         // Manual nav: autoGreet. AI nav: proactiveGreet (encyclopedia intro of the new place)
         if (panelOpen && !fromAI) setTimeout(autoGreet, 1050);
     } else {
@@ -483,9 +509,10 @@ async function proactiveGreet(loc) {
 }
 
 function setLabels(loc) {
-    document.getElementById('topLoc').textContent = loc.name;
-    document.getElementById('locLabel').textContent = loc.emoji + ' ' + loc.name;
-    document.getElementById('panelLoc').textContent = loc.emoji + ' ' + loc.name;
+    const topLoc = document.getElementById('topLoc');
+    if (topLoc) topLoc.textContent = loc.name;
+    document.getElementById('locLabel').innerHTML = `${renderLocIcon(loc)} <span>${loc.name}</span>`;
+    document.getElementById('panelLoc').textContent = loc.name;
 }
 
 function setSuggs(loc) {
@@ -515,7 +542,7 @@ function addMsg(role, text) {
     const d = document.createElement('div');
     const isSys = role === 'sys';
     d.className = 'msg ' + (role === 'u' ? 'u' : role === 'sys' ? 'sys' : '');
-    d.innerHTML = `<div class="mavatar">${role==='u'?'👤':isSys?'⚠️':'🎓'}</div><div class="bubble">${text}</div>`;
+    d.innerHTML = `<div class="mavatar">${role === 'u' ? '<i class="fa-solid fa-user" aria-hidden="true"></i>' : isSys ? '<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>' : '<i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>'}</div><div class="bubble">${text}</div>`;
     c.appendChild(d);
     c.scrollTop = c.scrollHeight;
 }
@@ -530,7 +557,7 @@ async function addMsgTyping(text) {
     d.className = 'msg';
     const avatar = document.createElement('div');
     avatar.className = 'mavatar';
-    avatar.textContent = '🎓';
+    avatar.innerHTML = '<i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>';
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
     d.appendChild(avatar);
@@ -555,7 +582,7 @@ function addMsgStream(role) {
     d.className = 'msg' + (role === 'u' ? ' u' : '');
     const avatar = document.createElement('div');
     avatar.className = 'mavatar';
-    avatar.textContent = '🎓';
+    avatar.innerHTML = '<i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>';
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
     const p = document.createElement('span');
@@ -572,12 +599,12 @@ function showDots() {
     const c = document.getElementById('chat');
     const d = document.createElement('div');
     d.className = 'tdots'; d.id = 'dots';
-    d.innerHTML = `<div class="mavatar">🎓</div><div class="tdots-inner"><span></span><span></span><span></span></div>`;
+    d.innerHTML = `<div class="mavatar"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></div><div class="tdots-inner"><span></span><span></span><span></span></div>`;
     c.appendChild(d); c.scrollTop = c.scrollHeight;
 }
-function hideDots() { 
-    const e = document.getElementById('dots'); 
-    if(e) e.remove(); 
+function hideDots() {
+    const e = document.getElementById('dots');
+    if (e) e.remove();
 }
 
 // ── AI CALL ──────────────────────────────────────────────────────────────────
@@ -611,16 +638,16 @@ IDs: lobby, library, fablab, cafe, interior, pool, gamedev, buildingB, golf, bui
 }
 
 async function callAI(msg) {
-    history.push({role:'user', content:msg});
+    history.push({ role: 'user', content: msg });
     try {
         // ✅ Fix 3: AbortController buat interrupt saat user kirim pesan baru
         abortController = new AbortController();
         const r = await fetch('/api/chat', {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             signal: abortController.signal,
             body: JSON.stringify({
-                messages: [{role:'system', content:buildSys()}, ...history],
+                messages: [{ role: 'system', content: buildSys() }, ...history],
                 max_tokens: 1500,
                 temperature: 0.7
             })
@@ -630,7 +657,7 @@ async function callAI(msg) {
 
         const reader = r.body.getReader();
         const decoder = new TextDecoder();
-        let buffer  = '';
+        let buffer = '';
         let fullText = '';
 
         // ✅ Fix 2: bubble dibuat LAZY — hanya saat token pertama tiba (tidak ada ghost bubble)
@@ -700,7 +727,7 @@ async function callAI(msg) {
                                     p.innerHTML = p._twDisplayed
                                         .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
                                         .replace(/\*(.*?)\*/g, '<i>$1</i>');
-                                    bubble.scrollIntoView({ behavior:'smooth', block:'end' });
+                                    bubble.scrollIntoView({ behavior: 'smooth', block: 'end' });
                                     setTimeout(flush, 10);
                                 };
                                 flush();
@@ -730,17 +757,17 @@ async function callAI(msg) {
             .replace(/<nav[\s\S]*$/gi, '')
             .replace(/\bnav\b\s*$/gi, '')
             .trim();
-        
+
         const nm = fullText.match(/"go"\s*:\s*"(\w+)"/);
         let finalStripped = stripped;
-        
+
         // Fallback for empty bubble if it was just a nav command
         if (!finalStripped && nm) {
             finalStripped = "Sure thing! Let's head over there right now.";
         }
 
         // Simpan ke history segera
-        history.push({role:'assistant', content:finalStripped});
+        history.push({ role: 'assistant', content: finalStripped });
 
         // Tunggu typewriter selesai, baru finalisasi bubble & trigger nav
         await new Promise(resolve => {
@@ -780,7 +807,7 @@ async function callAI(msg) {
 
         return finalStripped;
 
-    } catch(e) {
+    } catch (e) {
         if (e.name === 'AbortError') return ''; // interrupt normal — jangan error
         history.pop();
         return 'Oops, looks like there is a connection issue. Please make sure your API key is correct! 😊';
@@ -792,17 +819,17 @@ async function sendMsg() {
     const t = document.getElementById('txt');
     const msg = t.value.trim();
     if (!msg) return;
-    
+
     // ✅ Fix 3: Interrupt apapun yang ARIA sedang lakukan
     interruptAria();
-    
+
     t.value = ''; t.style.height = 'auto';
     addMsg('u', msg);
     busy = true;
     document.getElementById('sendBtn').disabled = true;
     showDots();
     await callAI(msg);
-    
+
     busy = false;
     document.getElementById('sendBtn').disabled = false;
 }
@@ -811,7 +838,7 @@ async function autoGreet() {
     if (busy) return;
     const loc = LOCS[cur];
     busy = true; showDots();
-    
+
     // Use natural conversational prompts in English
     const prompts = [
         `Hey ARIA, introduce the ${loc.name} to me in 2 short, engaging sentences! Be a welcoming tour guide.`,
@@ -821,15 +848,15 @@ async function autoGreet() {
         `Share a cool, concise fact about the ${loc.name} in English without being too formal.`
     ];
     const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
-    
+
     const reply = await callAI(randomPrompt);
-    
+
     await sleep(200);
     if (isSoundOn && reply) {
         const audio = await prepareTTS(reply);
         if (audio) playPreparedTTS(audio);
     }
-    
+
     busy = false;
 }
 
@@ -851,11 +878,11 @@ function toggleSound() {
     isSoundOn = !isSoundOn;
     const btn = document.getElementById('soundBtn');
     if (isSoundOn) {
-        btn.textContent = '🔊';
+        btn.innerHTML = '<i class="fa-solid fa-volume-high" aria-hidden="true"></i>';
         btn.classList.remove('muted');
         btn.title = 'Mute ARIA voice';
     } else {
-        btn.textContent = '🔇';
+        btn.innerHTML = '<i class="fa-solid fa-volume-xmark" aria-hidden="true"></i>';
         btn.classList.add('muted');
         btn.title = 'Unmute ARIA voice';
         stopTTS();
@@ -919,19 +946,19 @@ async function prepareTTS(text) {
 async function playPreparedTTS(audioObj) {
     if (!isSoundOn || !audioObj) return;
     const btn = document.getElementById('soundBtn');
-    
+
     try {
         stopTTS();
         currentAudio = audioObj;
-        
+
         currentAudio.onplay = () => {
             if (btn && isSoundOn) btn.classList.add('playing');
         };
-        
+
         currentAudio.onended = () => {
             if (btn) btn.classList.remove('playing');
         };
-        
+
         currentAudio.onpause = () => {
             if (btn) btn.classList.remove('playing');
         };
@@ -946,48 +973,77 @@ async function playPreparedTTS(audioObj) {
 // ── INITIAL GREETING (LOBBY GACHA) ───────────────────────────────────────────
 async function firstGreet() {
     if (busy) return;
-    busy = true; 
-    
+    busy = true;
+
     // 1. First Message: Hardcoded Gacha — NO LLM, print instantly
     const slogans = [
-        "Welcome to the most international university in Indonesia! 🌍",
-        "Welcome to the most roblox university in Indonesia! 🎮"
+        "Welcome to the most international university in Indonesia!",
+        "Welcome to the most roblox university in Indonesia!"
     ];
     const gachaSlogan = slogans[Math.floor(Math.random() * slogans.length)];
-    history.push({role: 'assistant', content: gachaSlogan});
+    history.push({ role: 'assistant', content: gachaSlogan });
     addMsg('a', gachaSlogan);
-    
+
     // ✅ Queue the gacha slogan to audio queue (Low Latency)
     if (isSoundOn) {
         addToAudioQueue(gachaSlogan);
     }
-    
+
     await sleep(600);
-    
+
     // 2. Second Message: streaming LLM — callAI handles its own bubble and TTS queue
-    showDots(); 
-    const prompt = "Briefly describe this Campus Lobby in a friendly way. Max 2 sentences. Don't say 'Welcome'.";
-    
+    showDots();
+    const prompt = `Briefly describe ${LOCS[cur].name} in a friendly way. Max 3 sentences. Don't say Welcome.`;
+
     // callAI will stream the text and add sentences to the audioQueue automatically
     await callAI(prompt);
-    
+
     busy = false;
 }
 
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
-setLabels(LOCS[0]);
-setSuggs(LOCS[0]);
+// Check if we came from a hotspot in index.html
+const savedLoc = sessionStorage.getItem('presuniv_goto_name');
+
+if (savedLoc) {
+    const targetIdx = LOCS.findIndex(l =>
+        l.name.toLowerCase() === savedLoc.toLowerCase()
+    );
+
+    if (targetIdx !== -1) {
+        cur = targetIdx;
+        console.log(`[INIT] Hotspot menuju: ${LOCS[cur].name}`);
+    } else {
+        console.warn('[INIT] Lokasi tidak ditemukan:', savedLoc);
+    }
+
+    sessionStorage.removeItem('presuniv_goto_name');
+    sessionStorage.removeItem('presuniv_goto_src');
+}
+
+// Set initial view - use animate=true if came from hotspot
+loadScene(!!savedLoc);
 
 // Pre-seed history so togglePanel's autoGreet check (history.length === 0) is skipped.
 // firstGreet() handles the real welcome sequence instead.
-history.push({role: 'assistant', content: '__init__'});
+history.push({ role: 'assistant', content: '__init__' });
+
+// Only toggle panel on initial load (not from hotspot navigation)
+// Always open AI panel
+const fromHotspot = !!savedLoc;
 
 setTimeout(() => {
+
+    // AI panel selalu muncul
     if (!panelOpen) togglePanel();
-    // Clear the placeholder and fire our custom greeting
+
+    // reset history placeholder
     history = [];
+
+    // greeting sesuai lokasi
     setTimeout(() => {
         firstGreet();
     }, 800);
+
 }, 1000);
