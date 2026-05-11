@@ -14,7 +14,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const KB_PATH = join(__dirname, '..', 'pu_knowledge_clean.json');
-const INDEX_PATH = join(__dirname, 'vector-index');
+const INDEX_PATH = join(__dirname, 'vector-index-3');
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -27,10 +27,42 @@ function chunkKnowledgeBase(kb) {
     return [];
   }
 
-  return kb.map(item => ({
-    topic: item.topic || 'General',
-    text: `${item.title}: ${item.content}`.replace(/\s+/g, ' ').trim()
-  })).filter(chunk => chunk.text.length > 20);
+  const chunks = [];
+  const MAX_CHUNK_SIZE = 800; // characters
+
+  kb.forEach(item => {
+    const title = item.title || 'General';
+    const topic = item.topic || title;
+    const fullText = (item.content || '').replace(/\s+/g, ' ').trim();
+
+    if (fullText.length <= MAX_CHUNK_SIZE) {
+      if (fullText.length > 20) {
+        chunks.push({ topic, text: `${title}: ${fullText}` });
+      }
+      return;
+    }
+
+    const paragraphs = fullText.split(/\n+/);
+    let currentChunk = "";
+
+    for (let p of paragraphs) {
+      p = p.trim();
+      if (!p) continue;
+      
+      if ((currentChunk.length + p.length) > MAX_CHUNK_SIZE && currentChunk.length > 0) {
+        chunks.push({ topic, text: `${title}:\n${currentChunk.trim()}` });
+        currentChunk = p + "\n";
+      } else {
+        currentChunk += p + "\n";
+      }
+    }
+    
+    if (currentChunk.trim().length > 0) {
+        chunks.push({ topic, text: `${title}:\n${currentChunk.trim()}` });
+    }
+  });
+
+  return chunks;
 }
 
 

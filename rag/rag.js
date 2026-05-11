@@ -14,7 +14,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const INDEX_PATH = join(__dirname, 'vector-index');
+const INDEX_PATH = join(__dirname, 'vector-index-3');
 
 let index = null;
 let embedder = null;
@@ -44,9 +44,10 @@ export async function retrieve(query, topK = 4) {
 
   const results = await index.queryItems(queryVector, topK);
 
-  if (results.length === 0) return '';
+  if (!results || results.length === 0) return '';
 
   return results
+    .slice(0, topK)
     .map(r => r.item.metadata.text)
     .join('\n\n');
 }

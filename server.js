@@ -106,11 +106,11 @@ app.post('/api/chat', async (req, res) => {
     const query = lastUserMsg ? lastUserMsg.content : "";
     
     console.log(`[RAG] Searching vector index for: "${query.substring(0, 50)}..."`);
-    const relevantContext = await retrieve(query, 4);
+    const relevantContext = await retrieve(query, 15);
 
     if (relevantContext) {
         const sysIdx = messages.findIndex(m => m.role === 'system');
-        const knowledgeStr = `\n\n[CONTEXT]: ${relevantContext.substring(0, 1000)}`; 
+        const knowledgeStr = `\n\n[CONTEXT]: ${relevantContext}`; 
         
         if (sysIdx !== -1) {
             if (!messages[sysIdx].content.includes('[CONTEXT]')) {

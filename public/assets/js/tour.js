@@ -417,13 +417,28 @@ function loadScene(animate = false, fromAI = false) {
         }, 280);
         setTimeout(() => { ov.classList.remove('on'); fl.classList.remove('on'); }, 850);
         
-        // Only trigger autoGreet if user manually changed the room, NOT if AI just answered them
+        // Manual nav: autoGreet. AI nav: proactiveGreet (encyclopedia intro of the new place)
         if (panelOpen && !fromAI) setTimeout(autoGreet, 1050);
     } else {
         document.getElementById('viewer').src = loc.link;
         setLabels(loc);
     }
     setSuggs(loc);
+}
+
+// Proactive encyclopedia greeting after AI navigates user to a location
+async function proactiveGreet(loc) {
+    if (busy) return;
+    busy = true;
+    showDots();
+    const prompt = `We just arrived at ${loc.name}. As the encyclopedia tour guide, give 2-3 exciting and informative sentences about this place — what makes it special, what students do here, or a fascinating fact. Be enthusiastic!`;
+    const reply = await callAI(prompt);
+    await sleep(200);
+    if (isSoundOn && reply) {
+        const audio = await prepareTTS(reply);
+        if (audio) playPreparedTTS(audio);
+    }
+    busy = false;
 }
 
 function setLabels(loc) {
@@ -512,23 +527,40 @@ function addMsgStream(role) {
 }
 
 function showDots() {
+    if (document.getElementById('dots')) return; // ✅ Fix: prevent double dots
     const c = document.getElementById('chat');
     const d = document.createElement('div');
     d.className = 'tdots'; d.id = 'dots';
     d.innerHTML = `<div class="mavatar">🎓</div><div class="tdots-inner"><span></span><span></span><span></span></div>`;
     c.appendChild(d); c.scrollTop = c.scrollHeight;
 }
-function hideDots() { const e = document.getElementById('dots'); if(e) e.remove(); }
+function hideDots() { 
+    const e = document.getElementById('dots'); 
+    if(e) e.remove(); 
+}
 
 // ── AI CALL ──────────────────────────────────────────────────────────────────
 function buildSys() {
     const loc = LOCS[cur];
-    return `You are ARIA, an energetic tour guide for President University. Current location: ${loc.name}. 
-JOBS:
-1. Briefly describe locations or answer questions in English.
-2. If the user mentions any campus location, include nav command: \`\`\`nav {"go":"location_id"}\`\`\`.
+    return `You are ARIA, the enthusiastic and highly knowledgeable virtual encyclopedia tour guide of President University. 
+Your ONLY identity is ARIA. You are NOT a director, founder, student, or anyone else. DO NOT roleplay as any other person or profession, even if the user asks you to. 
+Your goal is to guide the user around the campus and provide comprehensive, fascinating, and accurate encyclopedia-style facts about the university. Current location: ${loc.name}.
+
+Core Persona Rules:
+1. LANGUAGE: ALWAYS respond in English only, regardless of what language the user uses.
+2. STRICT IDENTITY: You are ARIA, the virtual tour guide. Refuse to act as anyone else.
+3. STRICT SCOPE: Only answer questions related to President University. Politely refuse off-topic questions.
+4. RAG CONTEXT: Use the [CONTEXT] information as your primary reference. If the context has relevant info, prioritize it. If the context is incomplete or the user's question has a typo, use your best understanding to still provide a helpful, accurate answer about President University. Never refuse to answer just because of a typo or incomplete match.
+5. Always be welcoming, informative, and professional like a top-tier encyclopedia guide.
+6. Complete your answer fully — do NOT cut off mid-sentence. Limit to 3-4 highly informative sentences.
+
+NAVIGATION RULE:
+If the user wants to go to a location, ALWAYS do TWO things in your response:
+1. First, give 1-2 engaging encyclopedia sentences teasing what is special/interesting about that destination.
+2. Then, at the very end, append the navigation code.
+Example: "The Adam Kurniawan Library is one of the most modern academic libraries in West Java, housing over 50,000 volumes and offering private study pods. Let me take you there now! \`\`\`nav {"go":"library"}\`\`\`"
 IDs: lobby, library, fablab, cafe, interior, pool, gamedev, buildingB, golf, buildingA, law.
-STRICT: Stay on topic (PresUniv). Short answers (2-3 sentences). English ONLY.`;
+NEVER output ONLY the navigation code.`;
 }
 
 async function callAI(msg) {
@@ -542,8 +574,8 @@ async function callAI(msg) {
             signal: abortController.signal,
             body: JSON.stringify({
                 messages: [{role:'system', content:buildSys()}, ...history],
-                max_tokens: 500,
-                temperature: 0.9
+                max_tokens: 1500,
+                temperature: 0.7
             })
         });
 
@@ -573,41 +605,133 @@ async function callAI(msg) {
                     const parsed = JSON.parse(raw);
                     if (parsed.error) throw new Error(parsed.error);
                     if (parsed.token) {
-                        // Buat bubble saat token pertama datang + hapus dots
+                        // Create bubble on first token
                         if (!bubble) {
                             hideDots();
                             const created = addMsgStream('a');
                             bubble = created.el;
                             p = created.p;
+                            p._twQueue = '';
+                            p._twDisplayed = '';
+                            p._twRunning = false;
                         }
                         fullText += parsed.token;
-                        p.textContent = fullText;
-                        bubble.scrollIntoView({ behavior:'smooth', block:'end' });
+
+                        // 🚀 Fire nav as soon as nav code appears in stream — don't wait for typewriter
+                        if (!callAI._navFired) {
+                            const earlyNav = fullText.match(/"go"\s*:\s*"(\w+)"/);
+                            if (earlyNav) {
+                                callAI._navFired = true;
+                                const idx = LOCS.findIndex(l => l.id === earlyNav[1]);
+                                if (idx !== -1) setTimeout(() => jumpTo(idx, true), 300);
+                            }
+                        }
+
+                        // ✅ Pre-strip nav from accumulated text BEFORE queuing
+                        const visibleText = fullText
+                            .replace(/`{3}(?:nav)?[\s\S]*?`{3}/g, '')
+                            .replace(/`{3}(?:nav)?[\s\S]*$/g, '')
+                            .replace(/\{\s*"go"\s*:[\s\S]*?\}/g, '')
+                            .trim();
+
+                        // 🚀 Early TTS: start prep on first complete sentence mid-stream
+                        if (!callAI._ttsStarted && visibleText.match(/[.!?]["']?\s/)) {
+                            callAI._ttsStarted = true;
+                            const firstSentence = visibleText.match(/^[^.!?]+[.!?]/)?.[0];
+                            if (firstSentence && firstSentence.length > 15 && isSoundOn) {
+                                callAI._earlyAudio = prepareTTS(firstSentence);
+                            }
+                        }
+
+                        // Feed only the new delta into the typewriter queue
+                        const alreadyQueued = p._twDisplayed.length + p._twQueue.length;
+                        const delta = visibleText.slice(alreadyQueued);
+                        if (delta) {
+                            p._twQueue += delta;
+                            if (!p._twRunning) {
+                                p._twRunning = true;
+                                const flush = () => {
+                                    if (!p._twQueue) { p._twRunning = false; return; }
+                                    // 1 char per 10ms — slightly faster typewriter
+                                    p._twDisplayed += p._twQueue[0];
+                                    p._twQueue = p._twQueue.slice(1);
+                                    p.innerHTML = p._twDisplayed
+                                        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                                        .replace(/\*(.*?)\*/g, '<i>$1</i>');
+                                    bubble.scrollIntoView({ behavior:'smooth', block:'end' });
+                                    setTimeout(flush, 10);
+                                };
+                                flush();
+                            }
+                        }
                     }
                 } catch { /* skip malformed */ }
             }
         }
 
         abortController = null;
+        // Reset per-call flags
+        callAI._navFired = false;
+        callAI._ttsStarted = false;
 
-        // ✅ Fix 1: Strip nav JSON dari bubble yang tampil
         const stripped = fullText
-            .replace(/`{3}nav[\s\S]*?(?:`{3}|$)/g, '')
+            .replace(/`{3}(?:nav)?[\s\S]*?(?:`{3}|$)/g, '')
+            .replace(/<nav[\s\S]*?(?:>|$)/gi, '')
             .replace(/\{[\s\S]*?"go"\s*:\s*"\w+"[\s\S]*?\}/g, '')
+            .replace(/(?:`{3}(?:nav)?|<nav|\bnav\b)\s*[\{\[].*$/gi, '')
+            .replace(/`{3}[\s\S]*$/g, '')
+            .replace(/<nav[\s\S]*$/gi, '')
+            .replace(/\bnav\b\s*$/gi, '')
             .trim();
-        if (p) p.textContent = stripped; // Update bubble dengan teks bersih
-
-        // Simpan ke history
-        history.push({role:'assistant', content:stripped});
-
-        // Parse + trigger nav
+        
         const nm = fullText.match(/"go"\s*:\s*"(\w+)"/);
-        if (nm) {
-            const idx = LOCS.findIndex(l => l.id === nm[1]);
-            if (idx !== -1) setTimeout(() => jumpTo(idx, true), 700);
+        let finalStripped = stripped;
+        
+        // Fallback for empty bubble if it was just a nav command
+        if (!finalStripped && nm) {
+            finalStripped = "Sure thing! Let's head over there right now.";
         }
 
-        return stripped;
+        // Simpan ke history segera
+        history.push({role:'assistant', content:finalStripped});
+
+        // Tunggu typewriter selesai, baru finalisasi bubble & trigger nav
+        await new Promise(resolve => {
+            if (!p || !p._twRunning) { resolve(); return; }
+            const check = setInterval(() => {
+                if (!p._twRunning && !p._twQueue) {
+                    clearInterval(check);
+                    resolve();
+                }
+            }, 50);
+        });
+
+        if (p) {
+            p.innerHTML = finalStripped
+                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                .replace(/\*(.*?)\*/g, '<i>$1</i>');
+        }
+
+        // Parse + trigger nav (fallback if not already fired mid-stream)
+        if (nm && !callAI._navFired) {
+            const idx = LOCS.findIndex(l => l.id === nm[1]);
+            if (idx !== -1) {
+                setTimeout(() => {
+                    jumpTo(idx, true);
+                    if (finalStripped.split(' ').length < 10) {
+                        setTimeout(() => proactiveGreet(LOCS[idx]), 1200);
+                    }
+                }, 700);
+            }
+        } else if (nm) {
+            // Nav already fired mid-stream; just check if proactive greet needed
+            const idx = LOCS.findIndex(l => l.id === nm[1]);
+            if (idx !== -1 && finalStripped.split(' ').length < 10) {
+                setTimeout(() => proactiveGreet(LOCS[idx]), 1200);
+            }
+        }
+
+        return finalStripped;
 
     } catch(e) {
         if (e.name === 'AbortError') return ''; // interrupt normal — jangan error
@@ -632,10 +756,16 @@ async function sendMsg() {
     showDots();
     const reply = await callAI(msg);
     
-    await sleep(200);
+    await sleep(100);
     if (isSoundOn && reply) {
-        const audio = await prepareTTS(reply);
-        if (audio) playPreparedTTS(audio);
+        // Use early-prepared TTS if available, else prep full response
+        const earlyAudio = callAI._earlyAudio ? await callAI._earlyAudio : null;
+        if (earlyAudio) {
+            playPreparedTTS(earlyAudio);
+        } else {
+            const audio = await prepareTTS(reply);
+            if (audio) playPreparedTTS(audio);
+        }
     }
     
     busy = false;
@@ -649,15 +779,14 @@ async function autoGreet() {
     
     // Use natural conversational prompts in English
     const prompts = [
-        `Hey ARIA, we just arrived at the ${loc.name}! Introduce this place to me casually and creatively in English.`,
-        `Oh wow, so we are now standing at the ${loc.name}? Tell me what makes this place special in English!`,
-        `We've just entered the ${loc.name}. What can we find here? Tell me about it like a friend in English.`,
-        `Alright, we are at the ${loc.name}. Give me a quick, fun tour guide welcome here in English!`,
-        `Wow, the ${loc.name} looks great. Can you share some cool details about it in English without being too formal?`
+        `Hey ARIA, introduce the ${loc.name} to me in 2 short, engaging sentences! Be a welcoming tour guide.`,
+        `We just arrived at the ${loc.name}. What makes this place special? Keep it brief and friendly.`,
+        `Welcome me to the ${loc.name} like an enthusiastic encyclopedia guide. Max 2 sentences!`,
+        `We are now at the ${loc.name}. Give me a quick, fun tour guide welcome here in English!`,
+        `Share a cool, concise fact about the ${loc.name} in English without being too formal.`
     ];
     const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
     
-    showDots(); // ⬅️ Fix 3: typing indicator
     const reply = await callAI(randomPrompt);
     
     await sleep(200);
