@@ -1,59 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Virtual Campus Tour — PresUniverse</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="assets/css/tour.css">
 </head>
+
 <body>
-<div id="overlay"></div>
-<div id="locFlash"></div>
+    <div id="overlay"></div>
+    <div id="locFlash"></div>
 
-<!-- TOP BAR -->
-<div id="topBar">
-    <a href="index.html" class="btn-back"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Home</span></a>
-</div>
+    <!-- TOP BAR -->
+    <div id="topBar">
+        <a href="index.html" class="btn-back"><span>Home</span></a>
+    </div>
 
-<!-- VIEWER -->
-<div class="viewer-container">
-    <iframe id="viewer" src=""></iframe>
-</div>
+    <!-- VIEWER -->
+    <div class="viewer-container">
+        <iframe id="viewer" src=""></iframe>
+    </div>
 
-<!-- AI PANEL -->
-<div id="aiPanel">
-    <div class="ph">
-        <div class="avatar"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></div>
-        <div>
-            <div class="guide-name">ARIA</div>
-            <div class="guide-sub">AI Campus Guide · PresUniverse</div>
+    <!-- AI PANEL -->
+    <div id="aiPanel">
+        <div class="ph">
+            <div class="avatar"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></div>
+            <div>
+                <div class="guide-name">ARIA</div>
+                <div class="guide-sub">AI Campus Guide · PresUniverse</div>
+            </div>
+            <button class="sound-btn" id="soundBtn" onclick="toggleSound()" title="Mute ARIA voice"><i
+                    class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
         </div>
-        <button class="sound-btn" id="soundBtn" onclick="toggleSound()" title="Mute ARIA voice"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
+        <div class="loc-tag"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span id="panelLoc">Campus
+                Lobby</span></div>
+        <div id="chat"></div>
+        <div id="suggs"></div>
+        <div class="input-row">
+            <textarea id="txt" placeholder="Ask ARIA anything..." rows="1" onkeydown="handleKey(event)"
+                oninput="grow(this)"></textarea>
+
+            <button class="ibtn" id="micBtn" onclick="toggleMic()" title="Voice"><i class="fa-solid fa-microphone"
+                    aria-hidden="true"></i></button>
+            <button class="ibtn" id="sendBtn" onclick="sendMsg()"><i class="fa-solid fa-paper-plane"
+                    aria-hidden="true"></i></button>
+        </div>
     </div>
-    <div class="loc-tag"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span id="panelLoc">Campus Lobby</span></div>
-    <div id="chat"></div>
-    <div id="suggs"></div>
-    <div class="input-row">
-        <textarea id="txt" placeholder="Ask ARIA anything..." rows="1"
-            onkeydown="handleKey(event)" oninput="grow(this)"></textarea>
 
-        <button class="ibtn" id="micBtn" onclick="toggleMic()" title="Voice"><i class="fa-solid fa-microphone" aria-hidden="true"></i></button>
-        <button class="ibtn" id="sendBtn" onclick="sendMsg()"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></button>
+    <!-- BOTTOM NAV -->
+    <div id="botNav">
+        <button class="abtn" onclick="nav(-1)"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+        <div id="locLabel"><i class="fa-solid fa-building-columns" aria-hidden="true"></i><span>Campus Lobby</span>
+        </div>
+        <button class="abtn" onclick="nav(1)"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+
     </div>
-</div>
 
-<!-- BOTTOM NAV -->
-<div id="botNav">
-    <button class="abtn" onclick="nav(-1)"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
-    <div id="locLabel"><i class="fa-solid fa-building-columns" aria-hidden="true"></i><span>Campus Lobby</span></div>
-    <button class="abtn" onclick="nav(1)"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+    <!-- Config is now handled by the backend server via /api/config -->
 
-</div>
-
-<!-- Config is now handled by the backend server via /api/config -->
-
-<script src="assets/js/tour.js"></script>
+    <script src="assets/js/tour.js"></script>
 </body>
+
 </html>

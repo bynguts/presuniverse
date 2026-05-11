@@ -5,12 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
-import { createRequire } from 'module';
-// RAG / TF-IDF: Disabled for Full Knowledge Injection
-// import { initRAG, retrieve } from './rag/rag.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ── Global Error Handling (Anti-Crash) ──────────────────────────────────────
 process.on('unhandledRejection', (reason, promise) => {

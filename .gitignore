@@ -12,19 +12,6 @@ web_modules/
 *.env
 config.json
 
-# Whisper.cpp binary models and builds
-whisper.cpp/models/*.bin
-whisper.cpp/build/
-whisper.cpp/**/*.exe
-whisper.cpp/**/*.dll
-whisper.cpp/**/*.lib
-whisper.cpp/**/*.obj
-whisper.cpp/**/*.pdb
-whisper.cpp/**/*.o
-whisper.cpp/**/*.a
-whisper.cpp/**/*.so
-whisper.cpp/**/*.dylib
-
 # Logs
 logs
 *.log
@@ -50,3 +37,6 @@ desktop.ini
 
 # Agent files
 .agent/
+
+# Binaries and large models
+whisper.cpp/

@@ -599,7 +599,7 @@ function showDots() {
     const c = document.getElementById('chat');
     const d = document.createElement('div');
     d.className = 'tdots'; d.id = 'dots';
-    d.innerHTML = `<div class="mavatar"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></div><div class="tdots-inner"><span></span><span></span><span></span></div>`;
+    d.innerHTML = `<div class="mavatar"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></div><div class="shining-text">ARIA is thinking...</div>`;
     c.appendChild(d); c.scrollTop = c.scrollHeight;
 }
 function hideDots() {
@@ -977,8 +977,7 @@ async function firstGreet() {
 
     // 1. First Message: Hardcoded Gacha — NO LLM, print instantly
     const slogans = [
-        "Welcome to the most international university in Indonesia!",
-        "Welcome to the most roblox university in Indonesia!"
+        "Welcome to the most international university in Indonesia!"
     ];
     const gachaSlogan = slogans[Math.floor(Math.random() * slogans.length)];
     history.push({ role: 'assistant', content: gachaSlogan });

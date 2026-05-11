@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 title PresUniverse All-in-One Launcher
 echo ==========================================================
 echo           PresUniverse Virtual Tour Launcher             

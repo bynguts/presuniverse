@@ -1,0 +1,27 @@
+{
+  "routing": {
+    "strategy": "round_robin",
+    "request_retry": 3
+  },
+  "providers": [
+    {
+      "name": "ollama-cloud",
+      "baseUrl": "https://ollama.com/v1",
+      "model": "gemma4:31b",
+      "keys": [
+        "YOUR_KEY_HERE"
+      ]
+    },
+    {
+      "name": "openrouter",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "model": "openai/gpt-oss-120b:free",
+      "headers": {
+        "HTTP-Referer": "https://your-domain.com"
+      },
+      "keys": [
+        "YOUR_OPENROUTER_KEY_HERE"
+      ]
+    }
+  ]
+}
