@@ -1,44 +1,42 @@
 # 🏛️ PresUniverse: Virtual Campus Tour with ARIA AI Guide
 
-PresUniverse is an immersive virtual tour application for **President University**, designed to provide prospective students and visitors with a high-tech, interactive exploration experience. Guided by **ARIA**, a voice-enabled AI assistant, users can navigate the campus, visit buildings through 360-degree-like experiences, and ask questions in real-time.
+PresUniverse is an immersive, presentation-ready virtual tour application for **President University**. Designed to provide prospective students and visitors with a high-tech exploration experience, it features **ARIA**, a highly responsive voice-enabled AI assistant that guides users through campus buildings via interactive 360-degree views.
 
 ---
 
-## 🚀 Key Features
+## 🚀 Key Features & Architecture
 
-- **🤖 ARIA AI Assistant**: A professional tour guide powered by Large Language Models (Ollama/OpenRouter). ARIA knows everything about President University from its curricula to facilities.
-- **🗣️ Voice & Speech Integration**:
-  - **Speech-to-Text (STT)**: Talk to ARIA naturally using a local high-performance Whisper.cpp server.
-  - **Text-to-Speech (TTS)**: ARIA responds with natural-sounding voices using Microsoft Edge TTS.
-- **📍 Interactive Virtual Tour**: Explore various campus buildings with smooth transitions, hotspot navigation, and dynamic sliders.
-- **📚 Smart Knowledge Base**: ARIA uses a "Source of Truth" knowledge injection system to ensure 100% factual accuracy regarding university information.
-- **🎮 Immersive UI**: A modern, dark-themed interface with glassmorphism effects and micro-animations for a premium feel.
-
----
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **HTML5 & Vanilla JavaScript**: Core application logic.
-- **CSS3**: Custom design system with modern aesthetics.
-- **SessionStorage & LocalStorage**: State management for tour navigation.
-
-### Backend
-- **Node.js & Express**: API gateway for chat, TTS, and STT.
-- **Ollama**: Local AI inference for primary chat capabilities.
-- **Whisper.cpp**: High-speed, local speech recognition.
-- **msedge-tts**: Cloud-grade voice synthesis.
+- **🤖 ARIA AI Assistant (Dual-Provider)**: Powered by a resilient backend architecture that uses OpenRouter as the primary LLM API, with an automatic fallback to local Ollama models ensuring 100% uptime during presentations.
+- **🗣️ Advanced Voice Pipeline**:
+  - **Dual-Stage STT (Speech-to-Text)**: Prioritizes the ultra-fast browser Web Speech API, with an automatic fallback to a local **Whisper.cpp** HTTP server proxy for privacy-first, offline transcription.
+  - **Low-Latency TTS (Text-to-Speech)**: Utilizes Microsoft Edge TTS with server-side warming and a custom frontend **Audio Queue System** for seamless, overlapping-free voice synthesis.
+- **📍 Interactive 360° Tour**: Seamless integration with Momento360 for high-fidelity panoramas, featuring dynamic UI synchronization and programmatic scene teleportation.
+- **⚡ Zero-Latency RAG**: Full injection of the `pu_knowledge_clean.json` knowledge base into the AI's system prompt at server startup, eliminating database retrieval latency and ensuring perfect factual accuracy.
 
 ---
 
-## 📦 Installation
+## 🛠️ Tech Stack & Engineering
+
+### Frontend (Client-Side)
+- **HTML5 & Vanilla JavaScript**: Core logic (`tour.js`) heavily documented with JSDoc for academic and presentation clarity.
+- **CSS3**: Custom dark-themed design system, glassmorphism UI, and fluid CSS animations.
+- **Browser APIs**: `MediaRecorder`, `AudioContext`, and `SpeechRecognition` for native multi-modal input.
+
+### Backend (Server-Side)
+- **Node.js & Express**: Acts as a secure proxy gateway to hide API keys, handle audio resampling, and manage AI Server-Sent Events (SSE) streaming.
+- **Whisper.cpp**: Native C++ local inference server for STT transcription (supports NVIDIA CUDA/Vulkan acceleration).
+- **msedge-tts**: Unofficial Edge TTS module integrated into the Node.js backend.
+
+---
+
+## 📦 Installation & Setup
 
 ### Prerequisites
-1. **Node.js**: v18 or later.
-2. **Ollama**: (Optional but recommended) for local AI hosting.
-3. **Whisper.cpp**: Build the server from source in the `whisper.cpp` directory.
+1. **Node.js**: v18 or later (Required for native `fetch` and `FormData` support).
+2. **Whisper.cpp**: Compiled server executable placed in `whisper.cpp/build/bin/Release/`.
+3. **Whisper Model**: Download `ggml-small.bin` and place it in the `whisper.cpp/models/` directory.
 
-### Setup Steps
+### Steps
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/bynguts/presuniverse.git
@@ -50,38 +48,39 @@ PresUniverse is an immersive virtual tour application for **President University
    npm install
    ```
 
-3. **Configure Environment**:
-   Create a `.env` file from the example:
+3. **Configure Environment Variables**:
+   Copy the example environment file and fill in your details:
    ```bash
    cp .env.example .env
    ```
-   Fill in your API keys (OpenRouter, etc.) and server configurations.
+   *Make sure `EDGE_TTS_VOICE` and `WHISPER_SERVER_URL` are set correctly.*
 
 4. **Prepare AI Config**:
-   Create a `config.json` file to define your AI providers (Ollama or OpenRouter).
+   Ensure `config.json` is properly formatted with your OpenRouter or Ollama API keys.
 
 ---
 
 ## 🚦 How to Run
 
 ### Automatic Startup (Windows)
-Simply run the included batch script to launch both the Whisper server and the Express backend:
-```bash
+Run the included batch script to launch both the Whisper.cpp STT server and the Node.js backend simultaneously:
+```cmd
 start-all.bat
 ```
+> **Note for Presenters**: If the Whisper Command Prompt crashes upon startup, edit `start-all.bat` and remove the `--device 1` flag to force CPU rendering.
 
 ### Manual Startup
-1. **Start Whisper Server**:
+1. **Start Whisper Server (Port 9000)**:
    ```bash
    cd whisper.cpp/build/bin/Release
-   whisper-server.exe -m models/ggml-small.bin --port 9000
+   whisper-server.exe -m ..\..\..\models\ggml-small.bin --port 9000
    ```
-2. **Start Backend**:
+2. **Start Backend (Port 3000)**:
    ```bash
-   npm start
+   node server.js
    ```
-3. **Open the App**:
-   Visit `http://localhost:3000` in your browser.
+3. **Access the App**:
+   Open `http://localhost:3000` in your web browser.
 
 ---
 
@@ -89,23 +88,26 @@ start-all.bat
 
 ```text
 presuniverse/
-├── public/                 # Frontend assets and pages
-│   ├── index.html          # Main landing and ARIA interface
-│   ├── tour.html           # Virtual tour viewer
-│   └── assets/             # Images, sounds, and media
-├── server.js               # Node.js backend & API endpoints
-├── pu_knowledge_clean.json # AI's factual knowledge base
-├── whisper.cpp/            # Submodule/directory for STT server
-├── start-all.bat           # One-click launcher script
-├── config.json             # AI provider configurations
-└── .env                    # Environment variables
+├── public/                 # Frontend UI, CSS, and Client Logic
+│   ├── index.html          # Main landing page & slider logic
+│   ├── tour.html           # Virtual tour 360 viewer shell
+│   └── assets/js/tour.js   # Brain of the frontend (STT, TTS queues, AI streaming)
+├── server.js               # Express Backend (API Gateway, AI Fallback, TTS Proxy)
+├── pu_knowledge_clean.json # Static Knowledge Base for Zero-Latency RAG
+├── whisper.cpp/            # High-performance C++ local STT server
+├── start-all.bat           # Windows deployment script
+├── config.json             # AI provider and model routing configs
+└── .env                    # System variables and voice selection
 ```
+
+---
+
+## 📖 Presentation Notes
+The codebase has been thoroughly annotated using standard **JSDoc** formatting in `server.js`, `tour.js`, and `index.html`. These comments explain the "Why" and "How" of the system's architecture, making it easy for any group member to read the source code and present the logic behind the audio queueing, AI streaming, and proxy fallback systems.
 
 ---
 
 ## 🛡️ License
 This project is licensed under the **ISC License**.
-
----
 
 *Built with ❤️ for President University.*

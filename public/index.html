@@ -725,11 +725,7 @@
     <div class="vc-line2"></div>
   </div>
 
-  <!-- Edge arrows -->
-  <div class="edge-arr" id="ea-l" onclick="prevSlide()"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-  </div>
-  <div class="edge-arr" id="ea-r" onclick="nextSlide()"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-  </div>
+
 
   <script>
     /* ═══════════════════════════════════════════════════
@@ -835,6 +831,13 @@
     updateUI();
 
     /* ═══════════ SLIDE LOGIC ═══════════ */
+    /**
+     * Changes the active view to the specified building slide index.
+     * This manages the primary visual state of the landing page, updating both the background
+     * building image and its associated interactive hotspot layer.
+     * 
+     * @param {number} n - The target slide index.
+     */
     function goSlide(n) {
       if (n === cur) return;
       document.getElementById('s' + cur).classList.remove('active');
@@ -842,9 +845,17 @@
       document.getElementById('s' + cur).classList.add('active');
       updateUI();
     }
+    /** Navigates to the next building slide in the sequence. */
     function nextSlide() { goSlide(cur + 1); }
+    
+    /** Navigates to the previous building slide in the sequence. */
     function prevSlide() { goSlide(cur - 1); }
 
+    /**
+     * Updates the User Interface elements to reflect the currently active slide.
+     * This ensures all secondary UI components (dot indicators, slide counters, and animated building names)
+     * stay perfectly synchronized with the background imagery.
+     */
     function updateUI() {
       /* dots */
       document.querySelectorAll('.sdot').forEach((d, i) => d.classList.toggle('on', i === cur));
@@ -878,6 +889,14 @@
     /* Keep building images static (no parallax movement) */
 
     /* Go to tour */
+    /**
+     * Handles navigation from the main landing page directly into the immersive 360 virtual tour.
+     * When a user clicks a hotspot, this function stores their target destination in `sessionStorage`
+     * so that `tour.html` can immediately load the correct panorama and trigger the appropriate AI greeting.
+     * 
+     * @param {string} locName - The internal ID/name of the target location (e.g., 'library').
+     * @param {string} src - The Momento360 URL associated with that location.
+     */
     function goTo(locName, src) {
       document.getElementById('ov').classList.add('on');
       sessionStorage.setItem('presuniv_goto_name', locName);

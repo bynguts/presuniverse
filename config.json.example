@@ -9,7 +9,8 @@
       "baseUrl": "https://ollama.com/v1",
       "model": "gemma4:31b",
       "keys": [
-        "YOUR_KEY_HERE"
+        "YOUR_OLLAMA_API_KEY_1",
+        "YOUR_OLLAMA_API_KEY_2"
       ]
     },
     {
@@ -17,10 +18,10 @@
       "baseUrl": "https://openrouter.ai/api/v1",
       "model": "openai/gpt-oss-120b:free",
       "headers": {
-        "HTTP-Referer": "https://your-domain.com"
+        "HTTP-Referer": "https://github.com/your-username/presuniverse"
       },
       "keys": [
-        "YOUR_OPENROUTER_KEY_HERE"
+        "YOUR_OPENROUTER_API_KEY"
       ]
     }
   ]

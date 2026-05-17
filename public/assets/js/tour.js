@@ -93,6 +93,17 @@ let currentAudio = null;
 let audioQueue = [];
 let isQueuePlaying = false;
 
+/**
+ * Recursively plays audio files from the queue to maintain low-latency Text-to-Speech playback.
+ * This ensures that multiple generated voice segments play sequentially without overlapping,
+ * creating a smooth, stutter-free listening experience.
+ * 
+ * Flow:
+ * 1. Checks if the queue is empty; if so, resets state and UI.
+ * 2. Dequeues the first audio object and sets it as the current audio.
+ * 3. Attaches an 'onended' event listener to recursively call itself for the next segment.
+ * 4. Attempts to play the audio and updates the UI button to show the 'playing' state.
+ */
 async function playNextInQueue() {
     if (audioQueue.length === 0) {
         isQueuePlaying = false;
@@ -119,6 +130,13 @@ async function playNextInQueue() {
     }
 }
 
+/**
+ * Prepares and adds a new TTS audio segment to the playback queue based on the incoming text stream.
+ * This is crucial for handling continuous streams of text from the AI without waiting for the entire
+ * response to finish generating.
+ * 
+ * @param {string} text - The text string to be converted to speech.
+ */
 async function addToAudioQueue(text) {
     if (!isSoundOn || !text.trim()) return;
     const audio = await prepareTTS(text);
@@ -132,6 +150,17 @@ async function addToAudioQueue(text) {
 let abortController = null; // AbortController for current fetch stream
 
 // Stop everything ARIA is doing and reset state instantly
+/**
+ * Stops everything ARIA is currently doing and resets the state instantly.
+ * This function acts as a hard reset when the user interrupts the AI (e.g., by sending a new message
+ * or clicking a navigation link while the AI is still speaking/typing).
+ * 
+ * Flow:
+ * 1. Aborts any ongoing AI stream fetch requests using the AbortController.
+ * 2. Stops the currently playing TTS audio.
+ * 3. Clears the pending audio queue so no queued voice segments play unexpectedly.
+ * 4. Hides loading indicators and resets the UI busy state to accept new input immediately.
+ */
 function interruptAria() {
     if (abortController) { abortController.abort(); abortController = null; }
     stopTTS();
@@ -172,6 +201,21 @@ async function toggleMic() {
 }
 
 // 1. Web Speech API (Modern, Real-time, 100% Free, No Balance Required)
+/**
+ * Initializes and starts the Web Speech API for real-time, browser-native voice transcription.
+ * This is used as the primary Speech-to-Text (STT) engine because it works directly in the browser
+ * without needing an external backend or API credits, providing instant text feedback.
+ * 
+ * Flow:
+ * 1. Checks for browser compatibility (`window.SpeechRecognition` or `window.webkitSpeechRecognition`).
+ * 2. Configures the recognition instance for continuous listening and partial (interim) results.
+ * 3. Sets the language dynamically based on user selection (e.g., 'id-ID' or 'en-US').
+ * 4. Defines event handlers:
+ *    - `onstart`: Updates the microphone button UI to indicate recording.
+ *    - `onresult`: Captures both finalized words and guessed (interim) words, updating the input box live.
+ *    - `onerror`: Handles permission denials or connection drops.
+ *    - `onend`: Automatically sends the message if the user manually clicked the stop button.
+ */
 function startRecWebSpeech() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!recognition) {
@@ -243,6 +287,15 @@ function startRecWebSpeech() {
     }
 }
 
+/**
+ * Stops the Web Speech API recording session.
+ * 
+ * Flow:
+ * 1. Sets a flag (`clickedStop`) so the `onend` event knows it was a deliberate stop by the user,
+ *    triggering the message to be sent automatically.
+ * 2. Commands the recognition engine to stop listening.
+ * 3. Updates the UI button to show a processing spinner and clears the recording timer.
+ */
 function stopRecWebSpeech() {
     clickedStop = true;
     if (recognition) {
@@ -266,7 +319,17 @@ function startRecTimerWebSpeech() {
     }, 1000);
 }
 
-// 2. Legacy MediaRecorder (Fallback)
+// 2. Legacy MediaRecorder (Fallback for browsers that don't support Web Speech API)
+/**
+ * Starts recording audio using the standard MediaRecorder API.
+ * This acts as a robust fallback system. If the browser doesn't support Web Speech API natively,
+ * it records the raw audio chunks to be sent to a local backend server (Whisper.cpp) for processing.
+ * 
+ * Flow:
+ * 1. Requests microphone access via `navigator.mediaDevices.getUserMedia`.
+ * 2. Initializes `MediaRecorder` and captures audio chunks into an array as they become available.
+ * 3. Updates the UI state to show the recording interface.
+ */
 async function startRec() {
     try {
         audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -298,6 +361,14 @@ async function startRec() {
     startRecTimer();
 }
 
+/**
+ * Stops the legacy MediaRecorder session.
+ * 
+ * Flow:
+ * 1. Checks if the `mediaRecorder` instance exists and is actively recording.
+ * 2. Commands the recorder to stop, which triggers its `onstop` event to process the audio.
+ * 3. Clears the recording timer and updates the UI button to show a processing state ("Transcribing...").
+ */
 function stopRec() {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
         mediaRecorder.stop();
@@ -313,6 +384,10 @@ function stopRec() {
 
 let recTimerInterval = null;
 let recSeconds = 0;
+/**
+ * Starts a visual timer in the input placeholder indicating how long the legacy recording has been active.
+ * This provides visual feedback to the user so they know the system is actively capturing audio.
+ */
 function startRecTimer() {
     recSeconds = 0;
     document.getElementById('txt').placeholder = 'Recording...';
@@ -322,6 +397,18 @@ function startRecTimer() {
     }, 1000);
 }
 
+/**
+ * Sends the recorded audio buffer (captured via MediaRecorder) to the backend for transcription.
+ * This function handles the conversion of raw audio chunks into a standard WAV format before sending
+ * them to the server's STT endpoint (which acts as a proxy to Whisper.cpp or cloud STT APIs).
+ * 
+ * Flow:
+ * 1. Converts the captured `audioChunks` array into a standardized WAV blob format.
+ * 2. Makes an HTTP POST request to `/api/stt` containing the raw audio bytes.
+ * 3. Receives the JSON response containing the transcribed text.
+ * 4. Filters out noise (e.g., "[BLANK_AUDIO]", "(silence)") to avoid sending blank messages to the AI.
+ * 5. Populates the chat input box and triggers `sendMsg()` automatically to process the query.
+ */
 async function transcribeWithWhisper() {
     let wavBlob;
     try {
@@ -385,6 +472,19 @@ async function transcribeWithWhisper() {
 }
 
 // ── WAV CONVERTER UTILS ──────────────────────────────────────────────────────
+/**
+ * Converts raw audio chunks captured by MediaRecorder into a standardized 16kHz Mono WAV Blob.
+ * Whisper.cpp requires audio to be specifically formatted (16000Hz, single channel).
+ * 
+ * Flow:
+ * 1. Creates a Blob from the raw chunks and reads it into an ArrayBuffer.
+ * 2. Uses the Web Audio API (`AudioContext`) to decode the audio data.
+ * 3. Creates an `OfflineAudioContext` strictly set to 16000Hz and 1 channel (mono).
+ * 4. Renders the resampled audio buffer and passes it to `bufferToWav` to generate the final file format.
+ * 
+ * @param {BlobPart[]} chunks - The array of raw audio chunks from MediaRecorder.
+ * @returns {Promise<Blob>} The processed WAV audio file ready for backend transmission.
+ */
 async function audioToWav(chunks) {
     const blob = new Blob(chunks);
     const arrayBuffer = await blob.arrayBuffer();
@@ -471,6 +571,20 @@ function jumpTo(idx, fromAI = false) {
     loadScene(true, fromAI);
 }
 
+/**
+ * Loads the target panorama scene based on the current location index (`cur`).
+ * This updates the Momento360 iframe URL, refreshes UI labels, and can optionally trigger an animated transition.
+ * 
+ * Flow:
+ * 1. Retrieves the location data object from the `LOCS` array.
+ * 2. If `animate` is true, shows an overlay screen and flashes the location name before changing the iframe source.
+ * 3. Calls `setLabels` to update textual location indicators in the UI.
+ * 4. Calls `setSuggs` to refresh the suggested prompt buttons based on the new location.
+ * 5. If the AI panel is open and it's a manual navigation, triggers an automatic greeting (`autoGreet`).
+ * 
+ * @param {boolean} animate - Whether to show the screen blackout and flash text transition.
+ * @param {boolean} fromAI - Whether the AI initiated the navigation (prevents double greeting).
+ */
 function loadScene(animate = false, fromAI = false) {
     const loc = LOCS[cur];
     if (animate) {
@@ -493,7 +607,19 @@ function loadScene(animate = false, fromAI = false) {
     setSuggs(loc);
 }
 
-// Proactive encyclopedia greeting after AI navigates user to a location
+/**
+ * Proactively generates a detailed, encyclopedia-style greeting when the AI navigates the user to a new location.
+ * Unlike `autoGreet` (which is meant for manual user clicks), this provides a richer, more specific context
+ * because the AI deliberately chose to bring the user here as part of the conversation.
+ * 
+ * Flow:
+ * 1. Blocks duplicate calls if the system is currently busy.
+ * 2. Crafts a specific prompt asking the LLM to act as an enthusiastic tour guide describing the specific location.
+ * 3. Calls the AI stream processing function (`callAI`).
+ * 4. Converts the response into Text-to-Speech playback.
+ * 
+ * @param {Object} loc - The location data object containing name, ID, and description.
+ */
 async function proactiveGreet(loc) {
     if (busy) return;
     busy = true;
@@ -637,6 +763,24 @@ If moving to a new location, first describe it briefly (1-2 sentences), then end
 IDs: lobby, library, fablab, cafe, interior, pool, gamedev, buildingB, golf, buildingA, law.`;
 }
 
+/**
+ * The core engine of the virtual assistant. This function sends the user's message to the backend API,
+ * establishes a Server-Sent Events (SSE) stream, and processes the AI's text response in real-time.
+ * 
+ * Flow:
+ * 1. Pushes the user's message to the conversation history.
+ * 2. Creates a new `AbortController` to allow instant cancellation if the user interrupts.
+ * 3. Sends a POST request to `/api/chat` with the system prompt, history, and generation parameters.
+ * 4. Reads the incoming data stream token by token.
+ * 5. Lazily creates a chat bubble in the UI upon receiving the first valid token.
+ * 6. Appends text to the UI dynamically as it arrives.
+ * 7. Buffers text to detect sentence boundaries (e.g., periods, question marks).
+ * 8. Pushes complete sentences to the `addToAudioQueue` for ultra-low latency Text-to-Speech playback mid-stream.
+ * 9. Scans the final text for embedded JSON commands (like `{"go":"library"}`) and triggers the navigation logic automatically.
+ * 
+ * @param {string} msg - The user's input text (either typed or transcribed via STT).
+ * @returns {Promise<string>} The finalized, stripped text output of the AI (used for chaining logic).
+ */
 async function callAI(msg) {
     history.push({ role: 'user', content: msg });
     try {
@@ -815,6 +959,7 @@ async function callAI(msg) {
 }
 
 
+// Handles sending a user message to the AI and adding it to the UI.
 async function sendMsg() {
     const t = document.getElementById('txt');
     const msg = t.value.trim();
@@ -834,6 +979,7 @@ async function sendMsg() {
     document.getElementById('sendBtn').disabled = false;
 }
 
+// Automatically generates a contextual greeting for the current location using randomized prompts.
 async function autoGreet() {
     if (busy) return;
     const loc = LOCS[cur];
@@ -861,6 +1007,7 @@ async function autoGreet() {
 }
 
 // ── TEXT TO SPEECH (CLOUD EDGE - EMMA) ───────────────────────────────────────
+// Stops the current Text-To-Speech audio playback and resets its position.
 function stopTTS() {
     if (currentAudio) {
         try {
@@ -874,6 +1021,7 @@ function stopTTS() {
     }
 }
 
+// Toggles the TTS sound state (mute/unmute) and updates the audio button UI.
 function toggleSound() {
     isSoundOn = !isSoundOn;
     const btn = document.getElementById('soundBtn');
@@ -916,6 +1064,7 @@ function cleanForTTS(text) {
         .trim();
 }
 
+// Prepares the TTS audio object for playback by either downloading a blob (for long texts) or streaming.
 async function prepareTTS(text) {
     const cleanText = cleanForTTS(text);
     if (!cleanText) return null;
@@ -943,6 +1092,7 @@ async function prepareTTS(text) {
     }
 }
 
+// Plays the prepared TTS audio object and handles play/pause/ended UI state events.
 async function playPreparedTTS(audioObj) {
     if (!isSoundOn || !audioObj) return;
     const btn = document.getElementById('soundBtn');
@@ -971,6 +1121,7 @@ async function playPreparedTTS(audioObj) {
 }
 
 // ── INITIAL GREETING (LOBBY GACHA) ───────────────────────────────────────────
+// Triggers the initial greeting sequence upon first entering the virtual tour, utilizing both gacha text and LLM.
 async function firstGreet() {
     if (busy) return;
     busy = true;
